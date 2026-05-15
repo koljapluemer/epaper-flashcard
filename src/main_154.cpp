@@ -3,7 +3,7 @@
 #include <GxEPD2_BW.h>
 
 // Waveshare 1.54" Rev 2.1 prototype wiring for ESP8266
-#define EPD_BUSY 16  // D0
+#define EPD_BUSY 12  // D6
 #define EPD_RST 5    // D1
 #define EPD_DC 4     // D2
 #define EPD_CS 15    // D8
@@ -12,9 +12,10 @@
 #define BUTTON_1_PIN 0  // D3 / GPIO0
 #define BUTTON_2_PIN 2  // D4 / GPIO2
 
-// If your specific 1.54" Rev 2.1 panel stays blank, try
-// GxEPD2_154_GDEY0154D67 here instead.
-using DisplayPanel = GxEPD2_154_D67;
+// Waveshare 1.54" V2 / Rev 2.1 modules often match this newer Good Display panel
+// better than the older D67 profile. If this still stays blank, the next candidates
+// to try are GxEPD2_154_M09 and GxEPD2_154.
+using DisplayPanel = GxEPD2_154_GDEY0154D67;
 
 GxEPD2_BW<DisplayPanel, DisplayPanel::HEIGHT> display(
     DisplayPanel(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
@@ -431,6 +432,8 @@ void waitForRelease() {
 }
 
 void handlePress() {
+  Serial.println("Button press detected");
+
   if (!answerVisible) {
     revealAnswerPartial();
   } else {
@@ -454,12 +457,16 @@ void setup() {
 
   randomSeed(ESP.getCycleCount() ^ micros() ^ analogRead(A0));
 
-  display.init(115200);
+  // Waveshare boards use a reset circuit that works better with the
+  // short reset pulse recommended by the GxEPD2 examples.
+  display.init(115200, true, 2, false);
   display.setRotation(1);
+  Serial.println("Display init complete");
 
   rearmButtons();
 
   pickRandomPair();
+  Serial.println("Drawing initial question");
   drawQuestionFull();
 
   waitForRelease();

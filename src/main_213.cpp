@@ -430,6 +430,8 @@ void waitForRelease() {
 }
 
 void handlePress() {
+  Serial.println("Button press detected");
+
   if (!answerVisible) {
     revealAnswerPartial();
   } else {
@@ -453,12 +455,16 @@ void setup() {
 
   randomSeed(ESP.getCycleCount() ^ micros() ^ analogRead(A0));
 
-  display.init(115200);
+  // Waveshare boards use a reset circuit that works better with the
+  // short reset pulse recommended by the GxEPD2 examples.
+  display.init(115200, true, 2, false);
   display.setRotation(1);
+  Serial.println("Display init complete");
 
   rearmButtons();
 
   pickRandomPair();
+  Serial.println("Drawing initial question");
   drawQuestionFull();
 
   waitForRelease();
