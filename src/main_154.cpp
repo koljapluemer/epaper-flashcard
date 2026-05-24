@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Adafruit_GFX.h>
 #include <ESP8266WiFi.h>
 #include <GxEPD2_BW.h>
 
@@ -19,6 +20,7 @@ using DisplayPanel = GxEPD2_154_GDEY0154D67;
 
 GxEPD2_BW<DisplayPanel, DisplayPanel::HEIGHT> display(
     DisplayPanel(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
+GFXcanvas1 canvas(DisplayPanel::WIDTH, DisplayPanel::HEIGHT);
 
 struct QA {
   const char* country;
@@ -291,7 +293,8 @@ uint8_t pickTextSize(const char* text, int maxWidth, int maxLines) {
   return SMALL_TEXT_SIZE;
 }
 
-int drawWrappedText(const char* text,
+int drawWrappedText(Adafruit_GFX& target,
+                    const char* text,
                     int x,
                     int y,
                     int maxWidth,
@@ -311,7 +314,7 @@ int drawWrappedText(const char* text,
   buffer[sizeof(buffer) - 1] = '\0';
   line[0] = '\0';
 
-  display.setTextSize(textSize);
+  target.setTextSize(textSize);
 
   char* saveptr = nullptr;
   char* token = strtok_r(buffer, " ", &saveptr);
@@ -323,7 +326,16 @@ int drawWrappedText(const char* text,
       strncpy(candidate, token, sizeof(candidate) - 1);
       candidate[sizeof(candidate) - 1] = '\0';
     } else {
-      snprintf(candidate, sizeof(candidate), "%s %s", line, token);
+      strncpy(candidate, line, sizeof(candidate) - 1);
+      candidate[sizeof(candidate) - 1] = '\0';
+
+      const size_t candidateLength = strlen(candidate);
+      if (candidateLength < sizeof(candidate) - 1) {
+        candidate[candidateLength] = ' ';
+        candidate[candidateLength + 1] = '\0';
+      }
+
+      strncat(candidate, token, sizeof(candidate) - strlen(candidate) - 1);
     }
 
     if ((int)strlen(candidate) <= charsPerLine) {
@@ -333,8 +345,8 @@ int drawWrappedText(const char* text,
       continue;
     }
 
-    display.setCursor(x, y + lineCount * lineHeight);
-    display.print(line[0] ? line : token);
+    target.setCursor(x, y + lineCount * lineHeight);
+    target.print(line[0] ? line : token);
     lineCount++;
 
     if (line[0]) {
@@ -348,12 +360,80 @@ int drawWrappedText(const char* text,
   }
 
   if (line[0] && lineCount < maxLines) {
-    display.setCursor(x, y + lineCount * lineHeight);
-    display.print(line);
+    target.setCursor(x, y + lineCount * lineHeight);
+    target.print(line);
     lineCount++;
   }
 
   return lineCount;
+}
+
+void drawCanvasToDisplay() {
+  display.setFullWindow();
+  display.firstPage();
+
+  do {
+    display.fillScreen(GxEPD_WHITE);
+    display.drawBitmap(0,
+                       0,
+                       canvas.getBuffer(),
+                       DisplayPanel::WIDTH,
+                       DisplayPanel::HEIGHT,
+                       GxEPD_BLACK,
+                       GxEPD_WHITE);
+  } while (display.nextPage());
+}
+
+void renderCard(bool showAnswer) {
+  const int screenWidth = display.width();
+  const int screenHeight = display.height();
+  const int contentWidth = screenWidth - (SCREEN_MARGIN * 2);
+  const int countryTextY = 34;
+  const int answerTop = screenHeight / 2 + 8;
+  const int footerY = screenHeight - 8;
+  const uint8_t countryTextSize = pickTextSize(countryBuf, contentWidth, 2);
+  const uint8_t capitalTextSize = pickTextSize(capitalBuf, contentWidth, 2);
+
+  canvas.fillScreen(GxEPD_WHITE);
+  canvas.setTextColor(GxEPD_BLACK);
+  canvas.setTextWrap(false);
+
+  canvas.setTextSize(LABEL_TEXT_SIZE);
+  canvas.setCursor(SCREEN_MARGIN, 16);
+  canvas.print("Capital of:");
+
+  drawWrappedText(canvas,
+                  countryBuf,
+                  SCREEN_MARGIN,
+                  countryTextY,
+                  contentWidth,
+                  countryTextSize,
+                  2);
+
+  if (showAnswer) {
+    canvas.drawLine(
+        SCREEN_MARGIN, answerTop - 10, screenWidth - SCREEN_MARGIN, answerTop - 10, GxEPD_BLACK);
+
+    canvas.setTextSize(LABEL_TEXT_SIZE);
+    canvas.setCursor(SCREEN_MARGIN, answerTop + 4);
+    canvas.print("Answer:");
+
+    drawWrappedText(canvas,
+                    capitalBuf,
+                    SCREEN_MARGIN,
+                    answerTop + 22,
+                    contentWidth,
+                    capitalTextSize,
+                    2);
+  }
+
+  canvas.setTextSize(LABEL_TEXT_SIZE);
+  canvas.setCursor(SCREEN_MARGIN, footerY);
+  canvas.print(showAnswer ? "Press for next" : "Press to reveal");
+
+  drawCanvasToDisplay();
+  answerVisible = showAnswer;
+  rearmButtons();
 }
 
 void drawQuestionFull() {
@@ -362,62 +442,14 @@ void drawQuestionFull() {
   Serial.print(" -> ");
   Serial.println(capitalBuf);
 
-  display.setFullWindow();
-  display.firstPage();
-
-  do {
-    const int screenWidth = display.width();
-    const int screenHeight = display.height();
-    const int contentWidth = screenWidth - (SCREEN_MARGIN * 2);
-    const uint8_t countryTextSize = pickTextSize(countryBuf, contentWidth, 2);
-    const int countryTextY = 34;
-
-    display.fillScreen(GxEPD_WHITE);
-    display.setTextColor(GxEPD_BLACK);
-
-    display.setTextSize(LABEL_TEXT_SIZE);
-    display.setCursor(SCREEN_MARGIN, 16);
-    display.print("Capital of:");
-
-    drawWrappedText(countryBuf, SCREEN_MARGIN, countryTextY, contentWidth, countryTextSize, 2);
-
-    display.setTextSize(LABEL_TEXT_SIZE);
-    display.setCursor(SCREEN_MARGIN, screenHeight - 8);
-    display.print("Press to reveal");
-
-  } while (display.nextPage());
-
-  rearmButtons();
+  renderCard(false);
 }
 
 void revealAnswerPartial() {
   Serial.print("Answer: ");
   Serial.println(capitalBuf);
 
-  const int screenWidth = display.width();
-  const int screenHeight = display.height();
-  const int answerTop = screenHeight / 2 + 4;
-  const int answerHeight = screenHeight - answerTop;
-  const int contentWidth = screenWidth - (SCREEN_MARGIN * 2);
-  const uint8_t capitalTextSize = pickTextSize(capitalBuf, contentWidth, 2);
-
-  display.setPartialWindow(0, answerTop, screenWidth, answerHeight);
-  display.firstPage();
-
-  do {
-    display.fillRect(0, answerTop, screenWidth, answerHeight, GxEPD_WHITE);
-    display.setTextColor(GxEPD_BLACK);
-
-    display.setTextSize(LABEL_TEXT_SIZE);
-    display.setCursor(SCREEN_MARGIN, answerTop + 12);
-    display.print("Answer:");
-
-    drawWrappedText(capitalBuf, SCREEN_MARGIN, answerTop + 30, contentWidth, capitalTextSize, 2);
-
-  } while (display.nextPage());
-
-  answerVisible = true;
-  rearmButtons();
+  renderCard(true);
 }
 
 void waitForRelease() {
@@ -460,7 +492,7 @@ void setup() {
   // Waveshare boards use a reset circuit that works better with the
   // short reset pulse recommended by the GxEPD2 examples.
   display.init(115200, true, 2, false);
-  display.setRotation(1);
+  display.setRotation(0);
   Serial.println("Display init complete");
 
   rearmButtons();
