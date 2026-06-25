@@ -4,13 +4,13 @@
 
 // Waveshare 2.13" prototype wiring for ESP8266
 #define EPD_BUSY 16  // D0
-#define EPD_RST 5    // D1
-#define EPD_DC 4     // D2
+#define EPD_RST 4    // D2
+#define EPD_DC 5     // D1
 #define EPD_CS 15    // D8
 
 // Buttons
-#define BUTTON_1_PIN 0  // D3 / GPIO0
-#define BUTTON_2_PIN 2  // D4 / GPIO2
+#define BUTTON_1_PIN 0   // D3 / GPIO0
+#define BUTTON_2_PIN 12  // D6 / GPIO12
 
 // If your specific 2.13" panel stays blank, try GxEPD2_213_GDEY0213B74 here instead.
 using DisplayPanel = GxEPD2_213_B74;
