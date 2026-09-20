@@ -162,6 +162,8 @@ void uiRenderFatalSd() {
 constexpr int BYE_HEADLINE_Y = 52;
 constexpr int BYE_SEPARATOR_Y = 60;
 constexpr int BYE_BOXES_Y = 78;
+constexpr int BYE_BOXES_RULE_Y = BYE_BOXES_Y + 4;   // 1px rule under "Boxes:"
+constexpr int BYE_RULE_GAP = 3;                     // extra space the rule pushes the counts down
 constexpr int BYE_LINE_H = 16;
 constexpr int BYE_TEXT_X = 8;
 constexpr int BYE_MAX_BOXES = 5;
@@ -192,12 +194,13 @@ static void drawStats(uint32_t trials, int unpracticed, const std::map<int, int>
   selectFont(FONT_BIG);
   if (u8f.getUTF8Width(headline) > W) selectFont(FONT_SMALL);   // huge counts
   printCentered(MID_X, BYE_HEADLINE_Y, headline);
-  display.drawFastHLine(0, BYE_SEPARATOR_Y, W, GxEPD_BLACK);
+  display.fillRect(0, BYE_SEPARATOR_Y, W, 2, GxEPD_BLACK);
 
   selectFont(FONT_BIG);
   u8f.setCursor(BYE_TEXT_X, BYE_BOXES_Y);
   u8f.print("Boxes:");
-  int y = BYE_BOXES_Y + BYE_LINE_H;
+  display.drawFastHLine(0, BYE_BOXES_RULE_Y, W, GxEPD_BLACK);
+  int y = BYE_BOXES_Y + BYE_LINE_H + BYE_RULE_GAP;
   drawCountLine(y, "Unpracticed", -1, unpracticed);
   int shown = 0;
   for (const auto &box : boxes) {
