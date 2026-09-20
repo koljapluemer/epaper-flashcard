@@ -8,6 +8,7 @@
 #include "SD_MMC.h"
 #include "config.h"
 #include "card_store.h"
+#include "stats_store.h"
 #include "ble_sync.h"
 
 static BLEServer *pServer = nullptr;
@@ -38,6 +39,7 @@ static uint32_t putCardId = 0;
 static int      putCardBox = 0;
 static bool     putCardPracticed = false;
 static uint32_t pendingDeleteId = 0;
+static uint32_t pendingTime = 0;
 
 #if BLE_FAST_SYNC
 static constexpr uint8_t FAST_BEGIN  = 0x20;
@@ -78,7 +80,7 @@ static PutTiming putTiming = {};
 // send/finish/delete work happens in bleSyncTick() on the main Arduino task.
 enum PendingBleAction {
   PENDING_NONE, PENDING_SEND_LIST, PENDING_FINISH_PUT_CARD,
-  PENDING_DELETE_CARD, PENDING_DELETE_ALL,
+  PENDING_DELETE_CARD, PENDING_DELETE_ALL, PENDING_SEND_STATS, PENDING_SET_TIME,
 #if BLE_FAST_SYNC
   PENDING_FAST_REPLY, PENDING_FAST_COMMIT
 #endif
@@ -166,7 +168,7 @@ static void commitFastCard() {
     if (!f) status = 3;
     else {
       uint8_t hdr[CARD_HEADER_BYTES];
-      encodeCardHeader(hdr, putCardId, putCardBox, putCardPracticed);
+      encodeCardHeader(hdr, cardMetaForPut(putCardId, putCardBox, putCardPracticed));
       bool written = f.write(hdr, CARD_HEADER_BYTES) == CARD_HEADER_BYTES &&
                      f.write(putBody.data(), putBody.size()) == putBody.size();
       f.close();
@@ -196,11 +198,14 @@ static void commitFastCard() {
 }
 #endif
 
-// LIST: streams id+box+practiced+front+back text for every loaded card,
+// [id u32][box u16][practiced u8][histCount u8][histBits u32][frontLen u16]
+static constexpr size_t LIST_HEAD_BYTES = 14;
+
+// LIST: streams id+box+practiced+history+front+back text for every loaded card,
 // batched into BLE_CHUNK-sized sends.
 static void sendListOverBle() {
   size_t total = 0;
-  for (auto &c : cards) total += 4 + 2 + 1 + 2 + c.frontLen + 2 + c.backLen;
+  for (auto &c : cards) total += LIST_HEAD_BYTES + c.frontLen + 2 + c.backLen;
 
   uint8_t header[5];
   header[0] = 0x10;
@@ -236,11 +241,13 @@ static void sendListOverBle() {
     File f = SD_MMC.open(path, FILE_READ);
     if (!f) { Serial.printf("BLE: LIST skip %08X, open failed\n", (unsigned)c.id); continue; }
 
-    uint8_t rec[9];
+    uint8_t rec[LIST_HEAD_BYTES];
     putU32(rec, c.id);
     rec[4] = (uint8_t)(c.box);      rec[5] = (uint8_t)(c.box >> 8);
     rec[6] = c.practiced ? 1 : 0;
-    rec[7] = (uint8_t)(c.frontLen); rec[8] = (uint8_t)(c.frontLen >> 8);
+    rec[7] = c.histCount;
+    putU32(rec + 8, c.histBits);
+    rec[12] = (uint8_t)(c.frontLen); rec[13] = (uint8_t)(c.frontLen >> 8);
     if (!feed(rec, sizeof(rec))) { f.close(); flushChunk(); return; }
 
     f.seek(CARD_HEADER_BYTES + 2);   // front text starts right after its length prefix
@@ -265,10 +272,31 @@ static void sendListOverBle() {
     f.close();
     if (!ok) { flushChunk(); return; }
 
-    sent += 4 + 2 + 1 + 2 + c.frontLen + 2 + c.backLen;
+    sent += LIST_HEAD_BYTES + c.frontLen + 2 + c.backLen;
   }
   flushChunk();
   Serial.printf("BLE: sent LIST, %u bytes / %u card(s)\n", (unsigned)sent, (unsigned)cards.size());
+}
+
+// STATS: `[0x14, len u32]` then the session records in BLE_CHUNK-sized sends.
+static void sendStatsOverBle() {
+  static std::vector<uint8_t> records;
+  bool ok = statsReadAll(records);
+  uint8_t header[5];
+  header[0] = 0x14;
+  putU32(header + 1, ok ? (uint32_t)records.size() : 0);
+  if (!sendChunkReliably(header, sizeof(header))) return;
+  for (size_t at = 0; ok && at < records.size(); at += BLE_CHUNK) {
+    if (!sendChunkReliably(records.data() + at, minSize(BLE_CHUNK, records.size() - at))) break;
+  }
+  Serial.printf("BLE: sent STATS, %u bytes\n", (unsigned)(ok ? records.size() : 0));
+  records.clear();
+}
+
+static void setTimeOnDevice(uint32_t unixSec) {
+  statsRecordSync(unixSec);
+  uint8_t resp[2] = { 0x15, 0 };
+  sendChunkReliably(resp, sizeof(resp));
 }
 
 static void finishPutCard() {
@@ -292,7 +320,7 @@ static void finishPutCard() {
       putOk = false;
     } else {
       uint8_t hdr[CARD_HEADER_BYTES];
-      encodeCardHeader(hdr, putCardId, putCardBox, putCardPracticed);
+      encodeCardHeader(hdr, cardMetaForPut(putCardId, putCardBox, putCardPracticed));
 #if BLE_TIMING_DEBUG
       phaseAt = micros();
 #endif
@@ -463,6 +491,11 @@ class RxCallbacks : public BLECharacteristicCallbacks {
         pendingAction = PENDING_DELETE_CARD;
       } else if (data[0] == 0x13) {                 // DELETE_ALL
         pendingAction = PENDING_DELETE_ALL;
+      } else if (data[0] == 0x14) {                 // STATS
+        pendingAction = PENDING_SEND_STATS;
+      } else if (data[0] == 0x15 && len >= 5) {     // SET_TIME
+        pendingTime = getU32(data + 1);
+        pendingAction = PENDING_SET_TIME;
       }
     } else {   // RX_BODY: raw body bytes, no framing -- copied into the
                // one-card RAM buffer and committed by finishPutCard().
@@ -582,6 +615,8 @@ void bleSyncTick() {
     case PENDING_FINISH_PUT_CARD: finishPutCard(); break;
     case PENDING_DELETE_CARD:     deleteCardOnDevice(pendingDeleteId); break;
     case PENDING_DELETE_ALL:      deleteAllCardsOnDevice(); break;
+    case PENDING_SEND_STATS:      sendStatsOverBle(); break;
+    case PENDING_SET_TIME:        setTimeOnDevice(pendingTime); break;
 #if BLE_FAST_SYNC
     case PENDING_FAST_REPLY:      sendFastReply(); break;
     case PENDING_FAST_COMMIT:     commitFastCard(); break;

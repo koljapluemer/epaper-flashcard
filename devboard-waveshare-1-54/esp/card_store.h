@@ -1,7 +1,8 @@
 // SD-backed card storage, one file per card.
 //
 // /cards/<id>.bin (id = 8 hex digits, so the basename is exactly 8.3):
-//   [magic "FC02"][u32 id LE][u16 box LE][u8 practiced],
+//   [magic "FC03"][u32 id LE][u16 box LE][u8 practiced]
+//   [u8 histCount][u32 histBits LE],
 //   then [u16 frontLen LE][frontText UTF-8][u16 backLen LE][backText UTF-8]
 //   [frontBitmap][backBitmap], each bitmap BMP_W x BMP_H, 1bpp, MSB-first,
 //   rows padded to a byte -- exactly what Adafruit_GFX::drawBitmap() wants.
@@ -14,9 +15,13 @@
 // in-file id is redundant with the filename and only used to log a mismatch;
 // the filename is authoritative.
 //
-// "FC02" = 200x92 bitmaps. Files from the older 190x36 layout ("FC01") fail
-// magic/size validation and are skipped with a serial log; there is
-// deliberately no migration -- wipe them with sync.html's Delete-all.
+// History = the last HIST_MAX graded trials, bit 0 = most recent, 1 = correct;
+// histCount says how many bits are valid. The manager never uploads history:
+// a re-uploaded card keeps the one already in RAM (see cardMetaForPut()).
+//
+// "FC03" = 200x92 bitmaps + history. Files from older layouts fail magic/size
+// validation and are skipped with a serial log; there is deliberately no
+// migration -- wipe them with the manager's Delete-all.
 #pragma once
 #include <Arduino.h>
 #include <vector>
@@ -24,6 +29,8 @@
 struct Flashcard {
   uint32_t id;
   int box; bool practiced;
+  uint8_t histCount = 0;
+  uint32_t histBits = 0;
   // Cached at load so bitmaps can be seeked to without re-reading the header.
   uint16_t frontLen, backLen;
 };
@@ -32,11 +39,13 @@ extern std::vector<Flashcard> cards;   // sorted by id (= creation order)
 extern bool sdOk;
 extern uint32_t nextId;                // 0 is the wire protocol's "assign me an id"
 
-constexpr size_t CARD_HEADER_BYTES = 4 + 4 + 2 + 1;   // magic + id + box + practiced
+constexpr size_t CARD_HEADER_BYTES = 4 + 4 + 2 + 1 + 1 + 4;   // magic + id + box + practiced + hist
+constexpr uint8_t HIST_MAX = 32;
 
 bool sdBegin();      // mount SD, make sure /cards exists; sets sdOk
 bool loadCards();    // scan /cards into `cards`; false if none
-bool saveCard(const Flashcard &c);   // atomically rewrite one card's box/practiced
+bool saveCard(const Flashcard &c);   // atomically rewrite one card's box/practiced/history
+void pushHistory(Flashcard &c, bool correct);
 
 // Reads the front or back bitmap (BMP_BYTES) of a card into `buf`.
 bool readCardBitmap(const Flashcard &c, bool front, uint8_t *buf);
@@ -44,7 +53,9 @@ bool readCardBitmap(const Flashcard &c, bool front, uint8_t *buf);
 // Paths / on-disk header, shared with the BLE PUT_CARD writer.
 void cardFilePath(uint32_t id, char *out, size_t outLen);
 void cardTmpPath(uint32_t id, char *out, size_t outLen);
-void encodeCardHeader(uint8_t *hdr, uint32_t id, int box, bool practiced);
+void encodeCardHeader(uint8_t *hdr, const Flashcard &c);
+// Header fields for a BLE upload: given box/practiced, history kept from RAM.
+Flashcard cardMetaForPut(uint32_t id, int box, bool practiced);
 bool parseIdFromFilename(const char *name, uint32_t &outId);
 
 // In-memory index maintenance after BLE-side file changes.

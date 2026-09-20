@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { RX_UUID, SERVICE_UUID, TX_UUID } from './constants'
 import { currentLink, setLink } from './link'
+import { sendTime } from './stats'
 
 type Status = 'disconnected' | 'connecting' | 'connected'
 
@@ -26,6 +27,7 @@ async function connect() {
     const tx = await service.getCharacteristic(TX_UUID)
     await tx.startNotifications()
     setLink({ device, rx, tx })
+    await sendTime()
     status.value = 'connected'
   } catch (err) {
     device?.removeEventListener('gattserverdisconnected', onDisconnected)

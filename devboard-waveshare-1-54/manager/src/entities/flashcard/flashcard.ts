@@ -7,6 +7,8 @@ export interface Flashcard {
   back: string
   box: number
   practiced: boolean
+  /** Last graded trials, oldest first; true = correct. Read-only: the device owns it. */
+  history: boolean[]
   /** Text as last known on the device. */
   syncedFront: string
   syncedBack: string
@@ -20,6 +22,7 @@ export function newFlashcard(front = '', back = ''): Flashcard {
     back,
     box: 0,
     practiced: false,
+    history: [],
     syncedFront: '',
     syncedBack: '',
   }

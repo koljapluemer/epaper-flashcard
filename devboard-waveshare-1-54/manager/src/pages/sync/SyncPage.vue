@@ -4,7 +4,6 @@ import { useDevice } from '@/entities/device/use-device'
 import { useFlashcards } from '@/entities/flashcard/use-flashcards'
 import CardList from './CardList.vue'
 import CardToolbar from './CardToolbar.vue'
-import StatsPanel from './StatsPanel.vue'
 import UnsupportedNotice from './UnsupportedNotice.vue'
 import { useSync } from './use-sync'
 
@@ -40,7 +39,6 @@ async function onAdd() {
     v-else
     class="flex flex-col gap-4"
   >
-    <StatsPanel :cards="cards" />
     <CardToolbar
       :busy="sync.busy.value"
       :card-count="cards.length"

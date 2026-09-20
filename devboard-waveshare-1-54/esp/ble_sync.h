@@ -12,7 +12,7 @@
 //   LIST (app -> device): single byte 0x10. Device replies with one notify
 //     [0x10, len:u32 LE] then chunks (BLE_CHUNK bytes each) of the
 //     concatenated per-card records [id:u32 LE][box:u16 LE][practiced:u8]
-//     [frontLen:u16 LE][front][backLen:u16 LE][back] -- no bitmaps
+//     [histCount:u8][histBits:u32 LE][frontLen:u16 LE][front][backLen:u16 LE][back] -- no bitmaps
 //     (sync.html always re-renders those from text before any upload).
 //
 //   PUT_CARD (app -> device): one write [0x11, id:u32 LE, box:u16 LE,
@@ -26,6 +26,11 @@
 //
 //   DELETE_CARD (app -> device): one write [0x12, id:u32 LE]; reply [0x12, status].
 //   DELETE_ALL  (app -> device): single byte 0x13; reply [0x13, status, deleted:u32 LE].
+//   STATS       (app -> device): single byte 0x14. Reply like LIST: [0x14, len:u32 LE]
+//     then chunks of the session records [practiced:u32 LE][syncTs:u32 LE]
+//     (see stats_store.h).
+//   SET_TIME    (app -> device): [0x15, unixSeconds:u32 LE], sent on every connect;
+//     reply [0x15, status]. PUT_CARD never carries history: the device keeps it.
 //
 // Versioned fast PUT (when BLE_FAST_SYNC is enabled):
 //   BEGIN 0x20 (acknowledged write): transferId, requested card id, metadata,

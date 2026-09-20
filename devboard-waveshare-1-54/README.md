@@ -30,8 +30,13 @@ Screen: 8 px icon strip on top and bottom; between them the front of the card
   Restart.
 - Long-press PWR shuts down from any screen.
 
-Card files are 200×92 bitmaps (`FC02`). Cards from before that change are
-skipped on load; clear them with the sync page's Delete-all and re-import.
+Card files are 200×92 bitmaps (`FC03`), carrying the card's last 32 correct/wrong
+trials. Cards from older formats are skipped on load; clear them with the
+manager's Delete-all and re-import.
+
+Session stats live in `/sessions.bin` on the SD (one record per boot: graded
+trials + the time the manager last synced). The manager sends the real time on
+every connect and shows the history and stats page.
 Icons live in `code/scripts/007_esp_s3_touch_flashcard_ble/icons/`; after
 changing a PNG run `python3 icons/gen_icons.py` in that folder (needs Pillow)
 to regenerate `icons.h`.

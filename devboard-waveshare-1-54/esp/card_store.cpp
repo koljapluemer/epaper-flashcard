@@ -10,7 +10,7 @@ bool sdOk = false;
 uint32_t nextId = 1;
 
 static const char *CARDS_DIR = "/cards";
-static const char *CARD_MAGIC = "FC02";
+static const char *CARD_MAGIC = "FC03";
 static const size_t CARD_MAGIC_LEN = 4;
 
 bool sdBegin() {
@@ -33,12 +33,35 @@ void cardTmpPath(uint32_t id, char *out, size_t outLen) {
   snprintf(out, outLen, "%s/%08X.bin.tmp", CARDS_DIR, (unsigned)id);
 }
 
-void encodeCardHeader(uint8_t *hdr, uint32_t id, int box, bool practiced) {
+void encodeCardHeader(uint8_t *hdr, const Flashcard &c) {
   memcpy(hdr, CARD_MAGIC, CARD_MAGIC_LEN);
-  hdr[4] = (uint8_t)(id);         hdr[5] = (uint8_t)(id >> 8);
-  hdr[6] = (uint8_t)(id >> 16);   hdr[7] = (uint8_t)(id >> 24);
-  hdr[8] = (uint8_t)(box);        hdr[9] = (uint8_t)(box >> 8);
-  hdr[10] = practiced ? 1 : 0;
+  hdr[4] = (uint8_t)(c.id);         hdr[5] = (uint8_t)(c.id >> 8);
+  hdr[6] = (uint8_t)(c.id >> 16);   hdr[7] = (uint8_t)(c.id >> 24);
+  hdr[8] = (uint8_t)(c.box);        hdr[9] = (uint8_t)(c.box >> 8);
+  hdr[10] = c.practiced ? 1 : 0;
+  hdr[11] = c.histCount;
+  hdr[12] = (uint8_t)(c.histBits);        hdr[13] = (uint8_t)(c.histBits >> 8);
+  hdr[14] = (uint8_t)(c.histBits >> 16);  hdr[15] = (uint8_t)(c.histBits >> 24);
+}
+
+void pushHistory(Flashcard &c, bool correct) {
+  c.histBits = (c.histBits << 1) | (correct ? 1 : 0);
+  if (c.histCount < HIST_MAX) c.histCount++;
+}
+
+static const Flashcard *findCard(uint32_t id) {
+  for (const auto &c : cards) {
+    if (c.id == id) return &c;
+  }
+  return nullptr;
+}
+
+Flashcard cardMetaForPut(uint32_t id, int box, bool practiced) {
+  const Flashcard *existing = findCard(id);
+  Flashcard c;
+  if (existing) c = *existing;
+  c.id = id; c.box = box; c.practiced = practiced;
+  return c;
 }
 
 // Parses the 8-hex-digit id out of a name as returned by File::name() (which
@@ -80,6 +103,9 @@ static bool loadOneCard(File &f, uint32_t idFromName, Flashcard &outCard) {
   outCard.id = idFromName;
   outCard.box = hdr[8] | (hdr[9] << 8);
   outCard.practiced = hdr[10] != 0;
+  outCard.histCount = hdr[11] > HIST_MAX ? HIST_MAX : hdr[11];
+  outCard.histBits = (uint32_t)hdr[12] | ((uint32_t)hdr[13] << 8) |
+                     ((uint32_t)hdr[14] << 16) | ((uint32_t)hdr[15] << 24);
 
   if (!readLenPrefixedSkip(f, outCard.frontLen)) return false;
   if (!readLenPrefixedSkip(f, outCard.backLen)) return false;
@@ -128,7 +154,7 @@ bool loadCards() {
   return !cards.empty();
 }
 
-// Atomic temp-file+rename rewrite of one card's box/practiced; everything
+// Atomic temp-file+rename rewrite of one card's header; everything
 // after the header is copied through byte-for-byte. A crash mid-write can
 // never lose more than the one card being graded.
 bool saveCard(const Flashcard &c) {
@@ -145,7 +171,7 @@ bool saveCard(const Flashcard &c) {
   if (!dst) { src.close(); Serial.println("saveCard: open tmp FAILED"); return false; }
 
   uint8_t hdr[CARD_HEADER_BYTES];
-  encodeCardHeader(hdr, c.id, c.box, c.practiced);
+  encodeCardHeader(hdr, c);
   bool ok = (dst.write(hdr, CARD_HEADER_BYTES) == CARD_HEADER_BYTES);
 
   src.seek(CARD_HEADER_BYTES);

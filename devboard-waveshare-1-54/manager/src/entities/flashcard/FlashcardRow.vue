@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Trash2 } from 'lucide-vue-next'
+import CardHistory from './CardHistory.vue'
 import FlashcardPreview from './FlashcardPreview.vue'
 
 const front = defineModel<string>('front', { required: true })
 const back = defineModel<string>('back', { required: true })
+defineProps<{ history: boolean[] }>()
 defineEmits<{ remove: [] }>()
 </script>
 
@@ -36,5 +38,9 @@ defineEmits<{ remove: [] }>()
     >
       <Trash2 class="size-4" />
     </button>
+    <CardHistory
+      :history="history"
+      class="sm:col-span-full"
+    />
   </li>
 </template>

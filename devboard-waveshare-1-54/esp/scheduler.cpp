@@ -2,6 +2,7 @@
 #include <vector>
 #include "config.h"
 #include "scheduler.h"
+#include "stats_store.h"
 
 static std::vector<int> queue;   // play order for this session
 static size_t queuePos = 0;      // index into `queue` of the card on screen
@@ -83,7 +84,9 @@ void gradeCorrect() {
 
   cards[idx].box++;
   cards[idx].practiced = true;
+  pushHistory(cards[idx], true);
   saveCard(cards[idx]);
+  statsRecordTrial();
 
   queue.erase(queue.begin() + queuePos);
   // Whatever slid into queuePos (if anything) is next; if that was the last
@@ -106,7 +109,9 @@ void gradeIncorrect() {
   consecutiveCorrect[idx] = 0;
   cards[idx].box = max(0, cards[idx].box - 2);
   cards[idx].practiced = true;
+  pushHistory(cards[idx], false);
   saveCard(cards[idx]);
+  statsRecordTrial();
 
   queue.erase(queue.begin() + queuePos);
   size_t nextPos = (queuePos < queue.size()) ? queuePos : 0;

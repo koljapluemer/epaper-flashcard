@@ -41,7 +41,7 @@
  * PWR shuts the device down from any state.
  *
  * Modules: config.h (pins/layout/constants), touch, power, ui (all display
- * code), card_store (per-card SD files), scheduler (session queue), ble_sync
+ * code), card_store (per-card SD files + history), stats_store (per-session counts), scheduler (session queue), ble_sync
  * (protocol + server; see ble_sync.h), icons.h (generated from icons/*.png by
  * icons/gen_icons.py).
  *

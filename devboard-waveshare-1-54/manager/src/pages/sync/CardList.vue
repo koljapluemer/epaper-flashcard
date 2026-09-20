@@ -25,6 +25,7 @@ defineExpose({ focusLast: () => list.value?.querySelector<HTMLInputElement>('li:
       :key="card.key"
       v-model:front="card.front"
       v-model:back="card.back"
+      :history="card.history"
       @remove="remove(card)"
     />
   </ul>
