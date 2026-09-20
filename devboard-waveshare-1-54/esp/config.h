@@ -68,6 +68,12 @@ constexpr int BMP_W = W, BMP_H = HALF_H;
 constexpr int BMP_ROW_BYTES = (BMP_W + 7) / 8;
 constexpr size_t BMP_BYTES = (size_t)BMP_ROW_BYTES * BMP_H;
 
+// Welcome banner on the power-off screen: the top WELCOME_H rows, full width
+// (see welcome_store.h). Must match WELCOME_H in the manager's welcome entity.
+constexpr int WELCOME_H = 32;
+constexpr size_t WELCOME_BYTES = (size_t)BMP_ROW_BYTES * WELCOME_H;
+static_assert(WELCOME_BYTES <= BMP_BYTES, "ui.cpp reads the banner into the card bitmap buffer");
+
 // ---- Touch zones ----
 // Icons are ~1.5 mm, so the top-corner zones are much bigger than the glyphs
 // (they overlap the front area, which is otherwise inert). Kept smaller than

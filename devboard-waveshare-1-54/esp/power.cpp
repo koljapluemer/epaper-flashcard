@@ -2,6 +2,7 @@
 #include "config.h"
 #include "power.h"
 #include "ui.h"
+#include "stats_store.h"
 
 void powerBegin() {
   pinMode(PIN_VBAT_PWR, OUTPUT);
@@ -11,7 +12,7 @@ void powerBegin() {
 
 static void powerOff() {
   Serial.println("PWR long-press -> shutting down");
-  uiRenderBye();
+  uiRenderBye(statsSessionTrials());
   digitalWrite(PIN_VBAT_PWR, LOW);
   while (true) delay(1000);
 }

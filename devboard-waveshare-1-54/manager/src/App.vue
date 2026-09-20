@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BarChart3, Layers } from 'lucide-vue-next'
+import { BarChart3, Layers, Settings } from 'lucide-vue-next'
 import ConnectButton from '@/features/device-connect/ConnectButton.vue'
 </script>
 
@@ -23,6 +23,13 @@ import ConnectButton from '@/features/device-connect/ConnectButton.vue'
           active-class="btn-active"
         >
           <BarChart3 class="size-4" /> Stats
+        </RouterLink>
+        <RouterLink
+          to="/settings"
+          class="btn btn-ghost btn-sm"
+          active-class="btn-active"
+        >
+          <Settings class="size-4" /> Settings
         </RouterLink>
       </nav>
       <ConnectButton />

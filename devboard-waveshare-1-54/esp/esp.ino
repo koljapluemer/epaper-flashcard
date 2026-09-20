@@ -37,11 +37,12 @@
  * An empty deck is a view of PROMPT (REVEAL is ignored), not a separate state.
  * Normal flashcard operation is partial-refresh only; full refreshes happen
  * only at boot (forced by GxEPD2), on HARD_REFRESH, on ENTER_SYNC, and for the
- * "Bye!" / "No SD card" screens. The game is paused while in SYNC. Long-press
+ * power-off / "No SD card" screens. The game is paused while in SYNC. Long-press
  * PWR shuts the device down from any state.
  *
  * Modules: config.h (pins/layout/constants), touch, power, ui (all display
- * code), card_store (per-card SD files + history), stats_store (per-session counts), scheduler (session queue), ble_sync
+ * code), card_store (per-card SD files + history), stats_store (per-session counts),
+ * welcome_store (power-off banner), scheduler (session queue), ble_sync
  * (protocol + server; see ble_sync.h), icons.h (generated from icons/*.png by
  * icons/gen_icons.py).
  *

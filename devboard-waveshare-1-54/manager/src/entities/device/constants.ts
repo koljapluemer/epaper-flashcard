@@ -8,6 +8,7 @@ export const OP_DELETE = 0x12
 export const OP_DELETE_ALL = 0x13
 export const OP_STATS = 0x14
 export const OP_SET_TIME = 0x15
+export const OP_WELCOME = 0x16
 export const OP_BEGIN = 0x20
 export const OP_DATA = 0x21
 export const OP_STATUS = 0x22
@@ -22,3 +23,6 @@ export const WINDOW_FRAMES = 4
 
 export const REPLY_TIMEOUT_MS = 8000
 export const WINDOW_TIMEOUT_MS = 4000
+
+/** Reserved card id: a fast PUT to it stores the welcome banner instead of a card. */
+export const WELCOME_TARGET = 0xffffffff

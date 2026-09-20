@@ -31,6 +31,11 @@
 //     (see stats_store.h).
 //   SET_TIME    (app -> device): [0x15, unixSeconds:u32 LE], sent on every connect;
 //     reply [0x15, status]. PUT_CARD never carries history: the device keeps it.
+//   GET_WELCOME (app -> device): single byte 0x16. Reply like LIST: [0x16, len u32] then
+//     the welcome message's UTF-8 text (len 0 = none set).
+//   The welcome banner itself is uploaded with the fast PUT below, using the
+//     reserved card id 0xFFFFFFFF (WELCOME_TARGET_ID) and body
+//     [textLen u16 LE][text][bitmap]; see welcome_store.h.
 //
 // Versioned fast PUT (when BLE_FAST_SYNC is enabled):
 //   BEGIN 0x20 (acknowledged write): transferId, requested card id, metadata,

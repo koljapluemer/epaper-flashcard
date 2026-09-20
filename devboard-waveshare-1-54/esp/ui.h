@@ -4,7 +4,7 @@
 // Refresh policy: normal flashcard operation is partial-window updates only.
 // A full refresh (flashing, clears ghosting) happens only for the boot draw
 // (forced by GxEPD2's initial-refresh flag), entering sync mode, the user's
-// hard-refresh button, and the one-off "Bye!" / "No SD card" screens.
+// hard-refresh button, and the one-off power-off / "No SD card" screens.
 #pragma once
 #include "card_store.h"
 
@@ -29,4 +29,6 @@ void uiRenderCard(const Flashcard *card, bool revealed, Region region, Refresh m
 void uiRenderSync();      // full refresh: "Sync Mode" + Restart button
 void uiFlashRestart();    // instant partial-refresh ack for the Restart tap
 void uiRenderFatalSd();
-void uiRenderBye();
+// Power-off screen: welcome banner on top, then this session's trial count and
+// the box counts (or a hint if no card was ever practiced).
+void uiRenderBye(uint32_t sessionTrials);

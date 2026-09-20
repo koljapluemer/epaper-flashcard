@@ -57,6 +57,8 @@ void statsRecordSync(uint32_t unixSec) {
                 (unsigned)unixSec, (unsigned)practiced);
 }
 
+uint32_t statsSessionTrials() { return practiced; }
+
 bool statsReadAll(std::vector<uint8_t> &out) {
   out.clear();
   if (!sdOk || !SD_MMC.exists(SESSIONS_PATH)) return true;   // no sessions yet

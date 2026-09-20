@@ -11,4 +11,5 @@
 
 void statsRecordTrial();                    // one graded card in this session
 void statsRecordSync(uint32_t unixSec);     // manager connected; latest one wins
+uint32_t statsSessionTrials();               // graded trials since this boot
 bool statsReadAll(std::vector<uint8_t> &out);   // whole file, records back to back

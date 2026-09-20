@@ -28,7 +28,10 @@ Screen: 8 px icon strip on top and bottom; between them the front of the card
 - **Top-right icon** (connect): enter sync mode (full refresh, "Sync Mode" +
   **Restart**). Open `sync.html`, connect to `Flashcards`, edit, save, then tap
   Restart.
-- Long-press PWR shuts down from any screen.
+- Long-press PWR shuts down from any screen. The power-off screen shows the
+  welcome message (set on the manager's Settings page; stored as `/welcome.bin`
+  on the SD) in its top 32 rows, then how many trials this session had and the
+  card counts per box (at most 5 boxes) -- or a hint if nothing was practiced yet.
 
 Card files are 200×92 bitmaps (`FC03`), carrying the card's last 32 correct/wrong
 trials. Cards from older formats are skipped on load; clear them with the

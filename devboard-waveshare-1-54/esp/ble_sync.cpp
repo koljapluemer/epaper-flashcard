@@ -9,6 +9,7 @@
 #include "config.h"
 #include "card_store.h"
 #include "stats_store.h"
+#include "welcome_store.h"
 #include "ble_sync.h"
 
 static BLEServer *pServer = nullptr;
@@ -80,7 +81,7 @@ static PutTiming putTiming = {};
 // send/finish/delete work happens in bleSyncTick() on the main Arduino task.
 enum PendingBleAction {
   PENDING_NONE, PENDING_SEND_LIST, PENDING_FINISH_PUT_CARD,
-  PENDING_DELETE_CARD, PENDING_DELETE_ALL, PENDING_SEND_STATS, PENDING_SET_TIME,
+  PENDING_DELETE_CARD, PENDING_DELETE_ALL, PENDING_SEND_STATS, PENDING_SET_TIME, PENDING_SEND_WELCOME,
 #if BLE_FAST_SYNC
   PENDING_FAST_REPLY, PENDING_FAST_COMMIT
 #endif
@@ -150,13 +151,34 @@ static bool validCardBodyShape() {
   return backLenOffset + 2 + backLen + 2 * BMP_BYTES == putBody.size();
 }
 
+// 0 = complete, well-formed and checksummed; 1 = invalid; 2 = checksum mismatch.
+static uint8_t checkFastBody(bool shapeOk) {
+  if (!fastActive || rxReceived != rxExpected || !putOk || !shapeOk) return 1;
+  if (esp_rom_crc32_le(0, putBody.data(), putBody.size()) != fastExpectedCrc) return 2;
+  return 0;
+}
+
+static void replyFastCommit(uint8_t status) {
+  fastReplyOpcode = FAST_COMMIT;
+  fastReplyStatus = status;
+  sendFastReply();
+  fastActive = false;
+  putBody.clear();
+}
+
+// The welcome banner travels as a fast PUT to WELCOME_TARGET_ID instead of a card.
+static void commitFastWelcome() {
+  uint8_t status = checkFastBody(welcomeBodyValid(putBody.data(), putBody.size()));
+  if (status == 0 && !welcomeSave(putBody.data(), putBody.size())) status = 3;
+  putCardId = WELCOME_TARGET_ID;
+  Serial.printf("BLE fast: commit welcome (%u bytes) -> %s\n",
+                (unsigned)rxReceived, status == 0 ? "ok" : "FAILED");
+  replyFastCommit(status);
+}
+
 static void commitFastCard() {
-  uint8_t status = 0;
-  if (!fastActive || rxReceived != rxExpected || !putOk || !validCardBodyShape()) {
-    status = 1;
-  } else if (esp_rom_crc32_le(0, putBody.data(), putBody.size()) != fastExpectedCrc) {
-    status = 2;
-  }
+  if (fastRequestedCardId == WELCOME_TARGET_ID) { commitFastWelcome(); return; }
+  uint8_t status = checkFastBody(validCardBodyShape());
 
   putCardId = fastRequestedCardId ? fastRequestedCardId : nextId;
   char path[24], tmpPath[28];
@@ -190,11 +212,7 @@ static void commitFastCard() {
   Serial.printf("BLE fast: commit card %08X (%u bytes, crc=%08X) -> %s\n",
                 (unsigned)putCardId, (unsigned)rxReceived, (unsigned)fastExpectedCrc,
                 status == 0 ? "ok" : "FAILED");
-  fastReplyOpcode = FAST_COMMIT;
-  fastReplyStatus = status;
-  sendFastReply();
-  fastActive = false;
-  putBody.clear();
+  replyFastCommit(status);
 }
 #endif
 
@@ -278,19 +296,31 @@ static void sendListOverBle() {
   Serial.printf("BLE: sent LIST, %u bytes / %u card(s)\n", (unsigned)sent, (unsigned)cards.size());
 }
 
-// STATS: `[0x14, len u32]` then the session records in BLE_CHUNK-sized sends.
+// `[opcode, len u32]` then `data` in BLE_CHUNK-sized sends; len 0 if !ok.
+static void sendStream(uint8_t opcode, const std::vector<uint8_t> &data, bool ok) {
+  size_t total = ok ? data.size() : 0;
+  uint8_t header[5];
+  header[0] = opcode;
+  putU32(header + 1, (uint32_t)total);
+  if (!sendChunkReliably(header, sizeof(header))) return;
+  for (size_t at = 0; at < total; at += BLE_CHUNK) {
+    if (!sendChunkReliably(data.data() + at, minSize(BLE_CHUNK, total - at))) break;
+  }
+  Serial.printf("BLE: sent stream 0x%02X, %u bytes\n", opcode, (unsigned)total);
+}
+
 static void sendStatsOverBle() {
   static std::vector<uint8_t> records;
   bool ok = statsReadAll(records);
-  uint8_t header[5];
-  header[0] = 0x14;
-  putU32(header + 1, ok ? (uint32_t)records.size() : 0);
-  if (!sendChunkReliably(header, sizeof(header))) return;
-  for (size_t at = 0; ok && at < records.size(); at += BLE_CHUNK) {
-    if (!sendChunkReliably(records.data() + at, minSize(BLE_CHUNK, records.size() - at))) break;
-  }
-  Serial.printf("BLE: sent STATS, %u bytes\n", (unsigned)(ok ? records.size() : 0));
+  sendStream(0x14, records, ok);
   records.clear();
+}
+
+static void sendWelcomeOverBle() {
+  static std::vector<uint8_t> text;
+  bool ok = welcomeReadText(text);
+  sendStream(0x16, text, ok);
+  text.clear();
 }
 
 static void setTimeOnDevice(uint32_t unixSec) {
@@ -496,6 +526,8 @@ class RxCallbacks : public BLECharacteristicCallbacks {
       } else if (data[0] == 0x15 && len >= 5) {     // SET_TIME
         pendingTime = getU32(data + 1);
         pendingAction = PENDING_SET_TIME;
+      } else if (data[0] == 0x16) {                 // GET_WELCOME
+        pendingAction = PENDING_SEND_WELCOME;
       }
     } else {   // RX_BODY: raw body bytes, no framing -- copied into the
                // one-card RAM buffer and committed by finishPutCard().
@@ -617,6 +649,7 @@ void bleSyncTick() {
     case PENDING_DELETE_ALL:      deleteAllCardsOnDevice(); break;
     case PENDING_SEND_STATS:      sendStatsOverBle(); break;
     case PENDING_SET_TIME:        setTimeOnDevice(pendingTime); break;
+    case PENDING_SEND_WELCOME:    sendWelcomeOverBle(); break;
 #if BLE_FAST_SYNC
     case PENDING_FAST_REPLY:      sendFastReply(); break;
     case PENDING_FAST_COMMIT:     commitFastCard(); break;

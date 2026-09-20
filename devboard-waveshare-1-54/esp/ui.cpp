@@ -1,10 +1,12 @@
 #include <Arduino.h>
+#include <map>
 #include <SPI.h>
 #include <GxEPD2_BW.h>
 #include <U8g2_for_Adafruit_GFX.h>
 #include "config.h"
 #include "icons.h"
 #include "ui.h"
+#include "welcome_store.h"
 
 // Single-page buffer (page height = HEIGHT): the firstPage()/nextPage() body
 // runs exactly once, so reading bitmaps from SD inside it is safe.
@@ -153,12 +155,72 @@ void uiRenderFatalSd() {
   } while (display.nextPage());
 }
 
-void uiRenderBye() {
+// ---- Power-off screen ----
+//   y   0..31   welcome banner (bitmap from the manager, if set)
+//   y  32..     "You practiced n times", separator, then the box counts --
+//               or a hint when nothing has been practiced yet
+constexpr int BYE_HEADLINE_Y = 52;
+constexpr int BYE_SEPARATOR_Y = 60;
+constexpr int BYE_BOXES_Y = 78;
+constexpr int BYE_LINE_H = 16;
+constexpr int BYE_TEXT_X = 8;
+constexpr int BYE_MAX_BOXES = 5;
+
+static void drawWelcomeBanner() {
+  if (welcomeReadBitmap(bmpBuf)) display.drawBitmap(0, 0, bmpBuf, W, WELCOME_H, GxEPD_BLACK);
+}
+
+static void drawNoStats() {
+  selectFont(FONT_BIG);
+  printCentered(MID_X, 98, "No stats yet.");
+  printCentered(MID_X, 118, "Turn on and");
+  printCentered(MID_X, 138, "get started.");
+}
+
+static void drawCountLine(int baselineY, const char *label, int box, int count) {
+  char line[32];
+  if (box < 0) snprintf(line, sizeof(line), "%s: %d", label, count);
+  else         snprintf(line, sizeof(line), "%s %d: %d", label, box, count);
+  u8f.setCursor(BYE_TEXT_X, baselineY);
+  u8f.print(line);
+}
+
+static void drawStats(uint32_t trials, int unpracticed, const std::map<int, int> &boxes) {
+  char headline[32];
+  snprintf(headline, sizeof(headline), "You practiced %u time%s",
+           (unsigned)trials, trials == 1 ? "" : "s");
+  selectFont(FONT_BIG);
+  if (u8f.getUTF8Width(headline) > W) selectFont(FONT_SMALL);   // huge counts
+  printCentered(MID_X, BYE_HEADLINE_Y, headline);
+  display.drawFastHLine(0, BYE_SEPARATOR_Y, W, GxEPD_BLACK);
+
+  selectFont(FONT_BIG);
+  u8f.setCursor(BYE_TEXT_X, BYE_BOXES_Y);
+  u8f.print("Boxes:");
+  int y = BYE_BOXES_Y + BYE_LINE_H;
+  drawCountLine(y, "Unpracticed", -1, unpracticed);
+  int shown = 0;
+  for (const auto &box : boxes) {
+    if (shown++ == BYE_MAX_BOXES) break;
+    y += BYE_LINE_H;
+    drawCountLine(y, "Box", box.first, box.second);
+  }
+}
+
+void uiRenderBye(uint32_t sessionTrials) {
+  int unpracticed = 0;
+  std::map<int, int> boxes;   // box -> practiced cards in it, ascending
+  for (const auto &c : cards) {
+    if (c.practiced) boxes[c.box]++;
+    else unpracticed++;
+  }
+
   display.setFullWindow();
   display.firstPage();
   do {
     display.fillScreen(GxEPD_WHITE);
-    selectFont(FONT_BIG);
-    printCentered(MID_X, 100, "Bye!");
+    drawWelcomeBanner();
+    if (boxes.empty()) drawNoStats();
+    else drawStats(sessionTrials, unpracticed, boxes);
   } while (display.nextPage());
 }
