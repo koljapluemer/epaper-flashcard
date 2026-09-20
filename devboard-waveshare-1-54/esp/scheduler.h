@@ -1,6 +1,7 @@
 // Session queue over `cards` (by index): built once per boot, then advanced
-// by grading. Box/practiced persist to SD immediately; queue position is
-// session-only.
+// by grading. Box/practiced persist to SD immediately; queue position and
+// consecutive-correct streaks are session-only. A card's second consecutive
+// correct answer introduces an additional new card as the immediate next card.
 #pragma once
 #include "card_store.h"
 

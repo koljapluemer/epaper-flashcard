@@ -5,6 +5,9 @@
 
 static std::vector<int> queue;   // play order for this session
 static size_t queuePos = 0;      // index into `queue` of the card on screen
+// Indexed like `cards`; deliberately session-only. A wrong answer breaks the
+// streak, while correct answers beyond two do not repeatedly introduce cards.
+static std::vector<uint8_t> consecutiveCorrect;
 
 static inline size_t minSize(size_t a, size_t b) { return a < b ? a : b; }
 
@@ -15,6 +18,22 @@ static void shuffleQueue(std::vector<int> &q) {
   }
 }
 
+static bool queueContains(int cardIdx) {
+  for (int queuedIdx : queue) {
+    if (queuedIdx == cardIdx) return true;
+  }
+  return false;
+}
+
+// The normal session build admits only NEW_CARDS_PER_SESSION new cards. This
+// finds the next one beyond that active set, in deck/creation order.
+static int nextUnpracticedCardOutsideQueue() {
+  for (int i = 0; i < (int)cards.size(); i++) {
+    if (!cards[i].practiced && !queueContains(i)) return i;
+  }
+  return -1;
+}
+
 // Fully random shuffle, then an intentionally incomplete (2-pass) bubble sort
 // by box, so lower-box items tend to end up earlier on average -- a gentle
 // bias, not a real sort. Never-practiced cards are skipped by every
@@ -23,6 +42,7 @@ static void shuffleQueue(std::vector<int> &q) {
 void buildSessionQueue() {
   queue.clear();
   queuePos = 0;
+  consecutiveCorrect.assign(cards.size(), 0);
   if (cards.empty()) return;
 
   // Only the next NEW_CARDS_PER_SESSION never-practiced cards (in deck order)
@@ -55,6 +75,12 @@ const Flashcard *currentCard() {
 void gradeCorrect() {
   if (queue.empty()) return;
   int idx = queue[queuePos];
+  if ((size_t)idx >= consecutiveCorrect.size()) {
+    consecutiveCorrect.resize(cards.size(), 0);
+  }
+  if (consecutiveCorrect[idx] < UINT8_MAX) consecutiveCorrect[idx]++;
+  bool introduceNewCard = consecutiveCorrect[idx] == 2;
+
   cards[idx].box++;
   cards[idx].practiced = true;
   saveCard(cards[idx]);
@@ -64,12 +90,20 @@ void gradeCorrect() {
   // card, wrap.
   size_t nextPos = (queuePos < queue.size()) ? queuePos : 0;
   queue.push_back(idx);   // appending never shifts indices <= nextPos
+  if (introduceNewCard) {
+    int newIdx = nextUnpracticedCardOutsideQueue();
+    if (newIdx >= 0) queue.insert(queue.begin() + nextPos, newIdx);
+  }
   queuePos = nextPos;
 }
 
 void gradeIncorrect() {
   if (queue.empty()) return;
   int idx = queue[queuePos];
+  if ((size_t)idx >= consecutiveCorrect.size()) {
+    consecutiveCorrect.resize(cards.size(), 0);
+  }
+  consecutiveCorrect[idx] = 0;
   cards[idx].box = max(0, cards[idx].box - 2);
   cards[idx].practiced = true;
   saveCard(cards[idx]);
