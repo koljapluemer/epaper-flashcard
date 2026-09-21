@@ -19,6 +19,7 @@ enum Region {
 
 void uiPowerOn();    // e-paper power rail on; call before touchBegin()
 void uiBegin();      // SPI, panel init, text renderer
+void uiRenderStarting();  // initial full refresh shown while the SD/deck loads
 
 // Draws the flashcard screen: top icons, front, separator, and -- when
 // `revealed` -- the back, then the bottom icons for that phase. A null

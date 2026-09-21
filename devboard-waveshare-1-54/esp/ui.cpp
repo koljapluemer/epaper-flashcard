@@ -68,6 +68,19 @@ static void drawTextButton(int x, int y, int w, int h, const char *label, bool i
   u8f.setForegroundColor(GxEPD_BLACK);
 }
 
+void uiRenderStarting() {
+  display.setFullWindow();
+  display.firstPage();
+  do {
+    display.fillScreen(GxEPD_WHITE);
+    drawIcon(ICON_RELOAD, ICON_LEFT_X, TOP_STRIP_Y);
+    drawIcon(ICON_CONNECT, ICON_RIGHT_X, TOP_STRIP_Y);
+    selectFont(FONT_BIG);
+    printCentered(MID_X, 94, "Starting...");
+    printCentered(MID_X, 114, "Loading Flashcards");
+  } while (display.nextPage());
+}
+
 // Draws a card bitmap at (0, y). Blank on any SD hiccup rather than garbage.
 static void drawCardBitmap(const Flashcard &c, bool front, int y) {
   if (readCardBitmap(c, front, bmpBuf)) {

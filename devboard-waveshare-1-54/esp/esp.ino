@@ -147,6 +147,7 @@ void setup() {
   uiPowerOn();
   touchBegin();
   uiBegin();
+  uiRenderStarting();
 
   if (!sdBegin()) {
     uiRenderFatalSd();
@@ -158,10 +159,9 @@ void setup() {
   buildSessionQueue();
 
   state = ST_PROMPT;
-  // Must be an explicit full draw: GxEPD2 forces a full *refresh* on the first
-  // update, but only of what was written to RAM, so a partial window here
-  // would leave the rows outside it (the top icon strip) blank.
-  uiRenderCard(currentCard(), false, REGION_BELOW_TOP, REFRESH_FULL);
+  // The startup screen already drew the unchanged top icons and performed the
+  // panel's required initial full refresh. Replace only the area below them.
+  uiRenderCard(currentCard(), false, REGION_BELOW_TOP, REFRESH_PARTIAL);
 
   Serial.println("top-left = hard refresh, top-right = sync; lower half = reveal / wrong / correct");
 }
