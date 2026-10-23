@@ -5,6 +5,7 @@ import { S8050_J3Y_RANGE_200_350_ } from "../imports/S8050_J3Y_RANGE_200_350_"
 import { SY8089AAAC } from "../imports/SY8089AAAC"
 import { TP4054 } from "../imports/TP4054"
 import { TS_1187A_B_A_B } from "../imports/TS_1187A_B_A_B"
+import { TYPE_C_16PIN_2MD_073_ } from "../imports/TYPE_C_16PIN_2MD_073_"
 import { WPN3012H2R2MT } from "../imports/WPN3012H2R2MT"
 import { at } from "./layout"
 
@@ -22,20 +23,19 @@ export const Power = () => (
   <group name="POWER" pcbX={0} pcbY={0}>
     <schematicsheet name="POWER" displayName="Power" sheetIndex={0}>
       {/* USB-C (device, 5V only) */}
-      <connector
-        name="USB1" {...at("USB1")} schWidth={1.575}
-        standard="usb_c"
+      <TYPE_C_16PIN_2MD_073_
+        name="USB1" {...at("USB1")}
         connections={{
           VBUS1: "net.VBUS",
           VBUS2: "net.VBUS",
           GND1: "net.GND",
           GND2: "net.GND",
-          SHELL1: "net.GND",
-          SHELL2: "net.GND",
-          DP1: "net.USB_DP",
-          DP2: "net.USB_DP",
-          DM1: "net.USB_DN",
-          DM2: "net.USB_DN",
+          EH1: "net.GND",
+          EH2: "net.GND",
+          Dp1: "net.USB_DP",
+          Dp2: "net.USB_DP",
+          Dn1: "net.USB_DN",
+          Dn2: "net.USB_DN",
         }}
       />
       <resistor name="R1" {...at("R1")} resistance="5.1k" footprint="0402" connections={{ pin1: "USB1.CC1", pin2: "net.GND" }} />

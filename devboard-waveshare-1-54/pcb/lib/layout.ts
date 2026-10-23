@@ -12,7 +12,7 @@ const placements: Record<string, Placement> = {
   // Large parts / edge connectors
   U1: [-9.15, 10.15],
   J4: [11.25, 7, 90],
-  USB1: [-15.85, -21.49],
+  USB1: [-15.8, -21.49],
   J3: [0, -22.9],
   J2: [16.15, -21.25],
   J5: [-17.94, -9, 90],
