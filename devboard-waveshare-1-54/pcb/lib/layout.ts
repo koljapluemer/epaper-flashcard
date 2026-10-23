@@ -7,6 +7,13 @@ export const BOARD_HEIGHT = 74
 export const DISPLAY = { width: 84.7, height: 54.41, centerY: BOARD_HEIGHT / 2 - 54.41 / 2 }
 
 /**
+ * Back-side area kept free for a 403450 LiPo (4 x 34 x 50mm) plus its
+ * protection board and leads: between the power section (left), the J3 cap
+ * column (right), the button pins (below) and the microSD slot (above).
+ */
+export const BATTERY_ZONE = { x: 5.4, y: 0.5, width: 53.8, height: 36 }
+
+/**
  * PCB placement in mm, origin at the board center, seen from the top layer.
  * Top layer = back of the device (all electronics). Bottom layer = front:
  * the e-paper panel (not modeled) and the three buttons. The panel's FPC
@@ -18,7 +25,7 @@ const placements: Record<string, Placement> = {
   J3: [38.82, DISPLAY.centerY, 90],
   USB1: [-25, 31.46, 180],
   J4: [8, 27.2, 180],
-  J2: [-38.2, 5, 90],
+  J2: [-24, -1.5, 90],
   SW4: [-38.45, 20, 270],
 
   // Front: buttons and solder pads centered under the display (16mm pitch; rotated so the 12.5mm pin spacing runs vertically)
@@ -47,10 +54,10 @@ const placements: Record<string, Placement> = {
   R10: [-24, 24.3],
   C4: [-27.6, 17.6],
   C3: [-24, 17.6],
-  C6: [-18.5, 17.6],
-  C5: [-24, 15.6],
-  R11: [-21.5, 15.6],
-  R12: [-19, 15.6],
+  C6: [-19.6, 24.4],
+  C5: [-29.6, 15.4],
+  R11: [-27.6, 15.4],
+  R12: [-25.6, 15.4],
 
   // Charger + battery ADC
   U2: [-26.5, 8],
@@ -65,38 +72,38 @@ const placements: Record<string, Placement> = {
   LED1: [-15, 34.8],
   R4: [-15, 32.8],
   LED2: [-10, 34.8],
-  R22: [-10, 32.8],
+  R22: [-10, 32.8, 180],
 
-  // RTC + I2C pull-ups
-  U4: [2, 12],
-  Y1: [6.5, 12],
-  C50: [10, 13.2],
-  R40: [10, 12],
-  R41: [10, 10.8],
-  R42: [10, 9.6],
-  D40: [2.5, 8],
-  D41: [2.5, 5.8],
+  // RTC + I2C pull-ups, top strip left of the microSD slot
+  U4: [-12, 23],
+  Y1: [-12, 27],
+  C50: [-7, 24.2],
+  R40: [-7, 25.4],
+  R41: [-7, 26.6],
+  R42: [-7, 27.8],
+  D40: [-7, 20.2],
+  D41: [-7, 22.4],
 
-  // microSD support
-  C60: [2.4, 18.6, 180],
-  R50: [4.5, 18.6],
-  R51: [6.6, 18.6],
-  R52: [8.7, 18.6, 180],
-  R53: [10.8, 18.6],
-  R54: [12.9, 18.6],
+  // microSD pull-ups
+  C60: [-3, 20, 180],
+  R50: [-3, 21.2],
+  R51: [-3, 22.4],
+  R52: [-3, 23.6, 180],
+  R53: [-3, 24.8],
+  R54: [-3, 26],
 
-  // E-paper supply switch and boost
-  Q4: [21, 12],
-  R30: [21, 9.4],
-  C41: [21, 7.6],
-  L2: [27.5, 12],
-  C40: [27.5, 8],
-  D30: [27.5, 5.6, 180],
-  D31: [27.5, 3.4],
-  D32: [27.5, 1.2],
-  Q5: [33.9, 19.5],
-  R32: [29.5, 19.5],
-  R31: [29.5, 17.6],
+  // E-paper supply switch and boost, top-right corner
+  Q4: [20.5, 22],
+  R30: [20.5, 25],
+  C41: [20.5, 26.8],
+  L2: [27.5, 22, 180],
+  C40: [27.5, 26.2],
+  D30: [27.5, 28.6, 180],
+  D31: [27.5, 30.8],
+  D32: [27.5, 33],
+  Q5: [34.5, 21.5],
+  R32: [34.5, 24.6, 180],
+  R31: [34.5, 26.4],
 
   // Panel capacitors in a column next to J3
   C31: [33.9, 15.2],

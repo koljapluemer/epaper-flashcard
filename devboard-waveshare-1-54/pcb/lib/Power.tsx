@@ -1,5 +1,4 @@
 import { A_1N5819WS } from "../imports/A_1N5819WS"
-import { A_1_25_2PWB } from "../imports/A_1_25_2PWB"
 import { AO3401A } from "../imports/AO3401A"
 import { MSK12C02 } from "../imports/MSK12C02"
 import { SY8089AAAC } from "../imports/SY8089AAAC"
@@ -50,7 +49,16 @@ export const Power = () => (
       <resistor name="R4" {...at("R4")} resistance="1k" footprint="0402" connections={{ pin1: "net.VBUS" }} />
       <led name="LED1" {...at("LED1")} schRotation={180} color="orange" footprint="0603" connections={{ anode: "R4.pin2", cathode: "U2.CHRG" }} />
 
-      <A_1_25_2PWB name="J2" {...at("J2")} connections={{ pin1: "net.VBAT", pin2: "net.GND" }} />
+      {/* Solder pads for the LiPo leads, at the edge of the battery zone */}
+      <pinheader
+        name="J2" {...at("J2")}
+        pinCount={2}
+        pitch="2.54mm"
+        doNotPlace
+        showSilkscreenPinLabels
+        pinLabels={["BAT_P", "BAT_N"]}
+        connections={{ BAT_P: "net.VBAT", BAT_N: "net.GND" }}
+      />
 
       {/* Battery / USB power path: SW4 disconnects the battery, Q1 blocks it while USB is present */}
       <MSK12C02 name="SW4" {...at("SW4")} connections={{ pin2: "net.BAT_SW", pin1: "net.VBAT" }} />

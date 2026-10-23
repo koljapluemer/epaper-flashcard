@@ -1,6 +1,6 @@
 import { Epaper } from "./lib/Epaper"
 import { FrontPanel } from "./lib/FrontPanel"
-import { BOARD_HEIGHT, BOARD_WIDTH, DISPLAY } from "./lib/layout"
+import { BATTERY_ZONE, BOARD_HEIGHT, BOARD_WIDTH, DISPLAY } from "./lib/layout"
 import { Mcu } from "./lib/Mcu"
 import { Rtc, SdCard } from "./lib/Peripherals"
 import { Power } from "./lib/Power"
@@ -37,6 +37,21 @@ export default () => (
       height={DISPLAY.height}
       strokeWidth={0.2}
       isStrokeDashed
+    />
+
+    {/* Battery area on the back: no components, cell fixed with foam tape */}
+    <silkscreenrect
+      pcbX={BATTERY_ZONE.x}
+      pcbY={BATTERY_ZONE.y}
+      width={BATTERY_ZONE.width}
+      height={BATTERY_ZONE.height}
+      strokeWidth={0.2}
+    />
+    <silkscreentext
+      text="LiPo 403450 (leads to BAT pads)"
+      pcbX={BATTERY_ZONE.x}
+      pcbY={BATTERY_ZONE.y}
+      fontSize="1.5mm"
     />
 
     {/* inner1 is a solid ground plane; outer layers are flooded with GND */}
