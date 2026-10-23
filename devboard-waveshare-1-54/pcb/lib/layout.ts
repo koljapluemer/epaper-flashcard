@@ -1,118 +1,114 @@
 type Placement = [x: number, y: number, rotation?: number]
 
-export const BOARD_WIDTH = 42
-export const BOARD_HEIGHT = 54
+export const BOARD_WIDTH = 85
+export const BOARD_HEIGHT = 74
+
+/** Front-side display outline: 84.70 x 54.41mm, landscape, flush with the top edge. */
+export const DISPLAY = { width: 84.7, height: 54.41, centerY: BOARD_HEIGHT / 2 - 54.41 / 2 }
 
 /**
- * PCB placement in mm. Origin is the board center, +y is the antenna edge.
- * All parts sit on the top side; the e-paper panel mounts on the bottom side
- * and its FPC wraps around the bottom edge into J3.
+ * PCB placement in mm, origin at the board center, seen from the top layer.
+ * Top layer = back of the device (all electronics). Bottom layer = front:
+ * the e-paper panel (not modeled) and the three buttons. The panel's FPC
+ * wraps around the right edge (as seen from the back) into J3.
  */
 const placements: Record<string, Placement> = {
-  // Large parts / edge connectors
-  U1: [-9.15, 10.15],
-  J4: [11.25, 7, 90],
-  USB1: [-15.8, -21.49],
-  J3: [0, -22.9],
-  J2: [16.15, -21.25],
-  J5: [-17.94, -9, 90],
-  SW1: [6, 24.3],
-  SW2: [14.6, 24.3],
+  // Edge parts
+  U1: [-32.7, -20.15, 180], // antenna in the bottom-left corner, below the display
+  J3: [38.82, DISPLAY.centerY, 90],
+  USB1: [-25, 31.46, 180],
+  J4: [8, 27.2, 180],
+  J2: [-38.2, 5, 90],
+  SW4: [-38.45, 20, 270],
 
-  // MCU support: decoupling/EN in the strip left of the module
-  C11: [-19.95, 18.9, 90],
-  C10: [-19.95, 15.9, 90],
-  R20: [-19.95, 13, 90],
-  C12: [-19.95, 11, 90],
-  R21: [2.75, 3.3, 90],
-  C60: [2.75, 6, 90],
+  // Front: buttons and solder pads centered under the display (16mm pitch; rotated so the 12.5mm pin spacing runs vertically)
+  SW1: [-16, -25.3, 90],
+  SW2: [0, -25.3, 90],
+  SW3: [16, -25.3, 90],
+  J5: [0, -34.9],
+  R21: [-26, -6],
 
-  // RTC + I2C pull-ups, top right
-  U4: [5, 18.7],
-  Y1: [9.2, 18.7],
-  R41: [12.9, 21],
-  C50: [12.9, 19.8, 180],
-  R40: [12.9, 17.6],
-  R42: [12.9, 16.4],
-  D40: [17.2, 19.9],
-  D41: [17.2, 17.4],
+  // MCU support, right of the module next to 3V3/EN
+  C11: [-18.5, -27],
+  C10: [-18.3, -24.9],
+  R20: [-18.5, -22.8],
+  C12: [-18.5, -21.6],
 
-  // USB CC resistors and VBUS pull-down between header and USB-C
-  R1: [-18.6, -17.84, 180],
-  R2: [-16.4, -17.84],
-  R6: [-14.2, -17.84],
+  // USB CC resistors, VBUS diode, power path
+  R2: [-26.8, 26.9, 180],
+  R1: [-23, 26.9],
+  D1: [-18.5, 26.9],
+  R6: [-29.8, 26.9],
+  Q1: [-30, 21],
 
   // 3.3V buck
-  U3: [-12.6, -2.9],
-  L1: [-7.9, -2.9],
-  C6: [-4.3, -2.9, 90],
-  C4: [-13.6, -5.6],
-  R10: [-11.6, -5.6],
-  R11: [-9.6, -5.6],
-  R12: [-7.6, -5.6],
-  C5: [-5.6, -5.6, 180],
-  C3: [-12.9, -7.3],
+  U3: [-24, 21],
+  L1: [-18.5, 21],
+  R10: [-24, 24.3],
+  C4: [-27.6, 17.6],
+  C3: [-24, 17.6],
+  C6: [-18.5, 17.6],
+  C5: [-24, 15.6],
+  R11: [-21.5, 15.6],
+  R12: [-19, 15.6],
 
-  // Soft power latch + battery/USB power path
-  D2: [-8.6, -7.5],
-  R9: [-5, -7.5],
-  Q3: [-12.8, -10.1],
-  R7: [-8.9, -9.4],
-  R8: [-6.9, -9.4],
-  R5: [-4.9, -9.4],
-  D3: [-8.1, -11],
-  Q1: [-12.8, -13.8],
-  Q2: [-8.5, -13.8],
-  D1: [-5.2, -13.8, 270],
+  // Charger + battery ADC
+  U2: [-26.5, 8],
+  C1: [-26.5, 11.4],
+  C2: [-26.5, 4.6],
+  R3: [-22.5, 8],
+  R13: [-22.5, 5],
+  R14: [-22.5, 3.8],
+  C7: [-22.5, 2.6],
 
-  // Battery ADC divider
-  R13: [-1.8, -2.6],
-  R14: [0.2, -2.6],
-  C7: [2.2, -2.6],
+  // LEDs along the top edge
+  LED1: [-15, 34.8],
+  R4: [-15, 32.8],
+  LED2: [-10, 34.8],
+  R22: [-10, 32.8],
 
-  // microSD pull-ups
-  R50: [6, -2.6],
-  R51: [8, -2.6],
-  R52: [10, -2.6],
-  R53: [12, -2.6],
-  R54: [14, -2.6],
+  // RTC + I2C pull-ups
+  U4: [2, 12],
+  Y1: [6.5, 12],
+  C50: [10, 13.2],
+  R40: [10, 12],
+  R41: [10, 10.8],
+  R42: [10, 9.6],
+  D40: [2.5, 8],
+  D41: [2.5, 5.8],
 
-  // LEDs, right edge
-  LED1: [17, -2.6],
-  R4: [19.6, -2.6, 90],
-  LED2: [17, -4.4],
-  R22: [19.6, -4.6, 90],
-
-  // Charger next to the battery connector
-  U2: [17.8, -7.3],
-  C2: [17.8, -10],
-  C1: [17.8, -12],
-  R3: [17.8, -13.7],
+  // microSD support
+  C60: [2.4, 18.6, 180],
+  R50: [4.5, 18.6],
+  R51: [6.6, 18.6],
+  R52: [8.7, 18.6, 180],
+  R53: [10.8, 18.6],
+  R54: [12.9, 18.6],
 
   // E-paper supply switch and boost
-  L2: [7.8, -6.6, 180],
-  C41: [12.6, -5],
-  Q4: [12.8, -8],
-  R30: [12.8, -10.5],
-  C40: [7.8, -10.2],
-  D30: [7.8, -12.4],
-  D31: [7.8, -14.5],
-  D32: [12.6, -13],
-  Q5: [-2, -16.9],
-  R32: [-2, -14.3],
-  R31: [-2, -12.5],
+  Q4: [21, 12],
+  R30: [21, 9.4],
+  C41: [21, 7.6],
+  L2: [27.5, 12],
+  C40: [27.5, 8],
+  D30: [27.5, 5.6, 180],
+  D31: [27.5, 3.4],
+  D32: [27.5, 1.2],
+  Q5: [33.9, 19.5],
+  R32: [29.5, 19.5],
+  R31: [29.5, 17.6],
 
-  // Panel capacitors in a row above the FPC connector
-  C31: [-7.8, -20.2, 90],
-  C32: [-6.2, -20.2, 90],
-  C30: [-4.8, -20.2, 90],
-  C33: [0, -20.2, 90],
-  C34: [1.6, -20.2, 90],
-  C35: [3.2, -20.2, 90],
-  C36: [4.8, -20.2, 90],
-  C37: [6.4, -20.2, 90],
-  C38: [8, -20.2, 90],
-  C39: [9.6, -20.2, 90],
+  // Panel capacitors in a column next to J3
+  C31: [33.9, 15.2],
+  C32: [33.9, 13.6],
+  C30: [34.4, 12.1],
+  C33: [33.9, 10.6],
+  C34: [33.9, 9],
+  C35: [33.9, 7.4],
+  C36: [33.9, 5.8],
+  C37: [33.9, 4.2],
+  C38: [33.9, 2.6],
+  C39: [33.9, 1],
 }
 
 export const at = (name: string) => {

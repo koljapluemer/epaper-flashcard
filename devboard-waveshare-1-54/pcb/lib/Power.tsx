@@ -1,23 +1,20 @@
 import { A_1N5819WS } from "../imports/A_1N5819WS"
 import { A_1_25_2PWB } from "../imports/A_1_25_2PWB"
 import { AO3401A } from "../imports/AO3401A"
-import { S8050_J3Y_RANGE_200_350_ } from "../imports/S8050_J3Y_RANGE_200_350_"
+import { MSK12C02 } from "../imports/MSK12C02"
 import { SY8089AAAC } from "../imports/SY8089AAAC"
 import { TP4054 } from "../imports/TP4054"
-import { TS_1187A_B_A_B } from "../imports/TS_1187A_B_A_B"
 import { TYPE_C_16PIN_2MD_073_ } from "../imports/TYPE_C_16PIN_2MD_073_"
 import { WPN3012H2R2MT } from "../imports/WPN3012H2R2MT"
 import { at } from "./layout"
 
 /**
- * USB-C input, Li-ion charging, soft power latch and 3.3V buck.
+ * USB-C input, Li-ion charging, power switch and 3.3V buck.
  *
- * Power path (from the Waveshare reference design):
- * - USB present: VBUS -> D1 -> VSYS, and Q2 is held off so the battery is
- *   isolated from VSYS.
- * - Battery only: pressing PWR pulls PWR_GATE low through D3, Q1 conducts and
- *   firmware latches it on by driving BAT_CTRL high (Q3 holds PWR_GATE low).
- *   BAT_KEY lets firmware read the button through D2.
+ * Power path:
+ * - USB present: VBUS -> D1 -> VSYS, and Q1 is held off so the battery is
+ *   isolated from VSYS. The battery charges regardless of SW4.
+ * - Battery only: SW4 on connects VBAT to BAT_SW and Q1 conducts into VSYS.
  */
 export const Power = () => (
   <group name="POWER" pcbX={0} pcbY={0}>
@@ -55,20 +52,10 @@ export const Power = () => (
 
       <A_1_25_2PWB name="J2" {...at("J2")} connections={{ pin1: "net.VBAT", pin2: "net.GND" }} />
 
-      {/* Battery / USB power path */}
-      <AO3401A name="Q1" {...at("Q1")} connections={{ S: "net.VBAT", D: "net.BAT_SW", G: "net.PWR_GATE" }} />
-      <AO3401A name="Q2" {...at("Q2")} connections={{ S: "net.VSYS", D: "net.BAT_SW", G: "net.VBUS" }} />
-      <resistor name="R5" {...at("R5")} resistance="100k" footprint="0402" connections={{ pin1: "net.VBAT", pin2: "net.PWR_GATE" }} />
+      {/* Battery / USB power path: SW4 disconnects the battery, Q1 blocks it while USB is present */}
+      <MSK12C02 name="SW4" {...at("SW4")} connections={{ pin2: "net.BAT_SW", pin1: "net.VBAT" }} />
+      <AO3401A name="Q1" {...at("Q1")} connections={{ S: "net.VSYS", D: "net.BAT_SW", G: "net.VBUS" }} />
       <resistor name="R6" {...at("R6")} resistance="100k" footprint="0402" connections={{ pin1: "net.VBUS", pin2: "net.GND" }} />
-
-      {/* Soft power latch */}
-      <S8050_J3Y_RANGE_200_350_ name="Q3" {...at("Q3")} connections={{ C: "net.PWR_GATE", E: "net.GND" }} />
-      <resistor name="R7" {...at("R7")} resistance="1k" footprint="0402" connections={{ pin1: "net.BAT_CTRL", pin2: "Q3.B" }} />
-      <resistor name="R8" {...at("R8")} resistance="10k" footprint="0402" connections={{ pin1: "Q3.B", pin2: "net.GND" }} />
-      <TS_1187A_B_A_B name="SW1" {...at("SW1")} connections={{ A: "net.PWR_KEY", C: "net.GND" }} />
-      <A_1N5819WS name="D2" {...at("D2")} connections={{ anode: "net.BAT_KEY", cathode: "net.PWR_KEY" }} />
-      <A_1N5819WS name="D3" {...at("D3")} connections={{ anode: "net.PWR_GATE", cathode: "net.PWR_KEY" }} />
-      <resistor name="R9" {...at("R9")} resistance="10k" footprint="0402" connections={{ pin1: "net.BAT_KEY", pin2: "net.V3_3" }} />
 
       {/* 3.3V buck: Vout = 0.6V * (1 + 200k / 44.2k) = 3.31V */}
       <SY8089AAAC name="U3" {...at("U3")} connections={{ IN: "net.VSYS", GND: "net.GND" }} />
