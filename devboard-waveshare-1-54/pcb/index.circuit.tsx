@@ -5,6 +5,8 @@ import { Mcu } from "./lib/Mcu"
 import { Rtc, SdCard } from "./lib/Peripherals"
 import { Power } from "./lib/Power"
 
+const POWER_NETS = ["VBUS", "VSYS", "VBAT", "BAT_SW", "V3_3", "BUCK_SW"]
+
 /**
  * ESP32-S3 dev board with a 3.52" landscape e-paper on the front, three
  * buttons and spare-signal solder pads below it. Derived from the Waveshare
@@ -19,6 +21,12 @@ export default () => (
     <Rtc />
     <SdCard />
     <FrontPanel />
+
+    {/* Wider copper for the supply rails (~0.5A peak with Wi-Fi; 0.3mm is good for ~1A) */}
+    {POWER_NETS.map((name) => (
+      <net key={name} name={name} isPowerNet nominalTraceWidth="0.3mm" />
+    ))}
+    <net name="GND" isGroundNet />
 
     {/* E-paper panel outline on the front (bottom layer) */}
     <fabricationnoterect

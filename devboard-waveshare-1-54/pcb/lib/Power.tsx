@@ -58,11 +58,11 @@ export const Power = () => (
       <resistor name="R6" {...at("R6")} resistance="100k" footprint="0402" connections={{ pin1: "net.VBUS", pin2: "net.GND" }} />
 
       {/* 3.3V buck: Vout = 0.6V * (1 + 200k / 44.2k) = 3.31V */}
-      <SY8089AAAC name="U3" {...at("U3")} connections={{ IN: "net.VSYS", GND: "net.GND" }} />
+      <SY8089AAAC name="U3" {...at("U3")} connections={{ IN: "net.VSYS", GND: "net.GND", LX: "net.BUCK_SW" }} />
       <resistor name="R10" {...at("R10")} resistance="100k" footprint="0402" connections={{ pin1: "net.VSYS", pin2: "U3.EN" }} />
       <capacitor name="C3" {...at("C3")} capacitance="10uF" footprint="0805" connections={{ pin1: "net.VSYS", pin2: "net.GND" }} />
       <capacitor name="C4" {...at("C4")} capacitance="100nF" footprint="0402" connections={{ pin1: "net.VSYS", pin2: "net.GND" }} />
-      <WPN3012H2R2MT name="L1" {...at("L1")} connections={{ pin1: "U3.LX", pin2: "net.V3_3" }} />
+      <WPN3012H2R2MT name="L1" {...at("L1")} connections={{ pin1: "net.BUCK_SW", pin2: "net.V3_3" }} />
       <resistor name="R11" {...at("R11")} resistance="200k" footprint="0402" connections={{ pin1: "net.V3_3", pin2: "U3.FB" }} />
       <resistor name="R12" {...at("R12")} resistance="44.2k" footprint="0402" connections={{ pin1: "U3.FB", pin2: "net.GND" }} />
       <capacitor name="C5" {...at("C5")} capacitance="22pF" footprint="0402" connections={{ pin1: "net.V3_3", pin2: "U3.FB" }} />

@@ -28,11 +28,11 @@ const placements: Record<string, Placement> = {
   J5: [0, -34.9],
   R21: [-26, -6],
 
-  // MCU support, right of the module next to 3V3/EN
-  C11: [-18.5, -27],
-  C10: [-18.3, -24.9],
-  R20: [-18.5, -22.8],
-  C12: [-18.5, -21.6],
+  // MCU support, between SW1's pins (clear of its peg holes)
+  C11: [-16, -27.5],
+  C10: [-16, -25.3],
+  R20: [-16, -22.9, 180],
+  C12: [-16, -21.5],
 
   // USB CC resistors, VBUS diode, power path
   R2: [-26.8, 26.9, 180],
