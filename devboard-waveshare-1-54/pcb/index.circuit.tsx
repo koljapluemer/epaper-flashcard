@@ -2,7 +2,7 @@ import { Epaper } from "./lib/Epaper"
 import { FrontPanel } from "./lib/FrontPanel"
 import { BATTERY_ZONE, BOARD_HEIGHT, BOARD_WIDTH, DISPLAY } from "./lib/layout"
 import { Mcu } from "./lib/Mcu"
-import { Rtc, SdCard } from "./lib/Peripherals"
+import { Fram, Rtc } from "./lib/Peripherals"
 import { Power } from "./lib/Power"
 
 const POWER_NETS = ["VBUS", "VSYS", "VBAT", "BAT_SW", "V3_3", "BUCK_SW"]
@@ -19,7 +19,7 @@ export default () => (
     <Power />
     <Epaper />
     <Rtc />
-    <SdCard />
+    <Fram />
     <FrontPanel />
 
     {/* Wider copper for the supply rails (~0.5A peak with Wi-Fi; 0.3mm is good for ~1A) */}

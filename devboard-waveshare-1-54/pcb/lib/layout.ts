@@ -9,7 +9,7 @@ export const DISPLAY = { width: 84.7, height: 54.41, centerY: BOARD_HEIGHT / 2 -
 /**
  * Back-side area kept free for a 403450 LiPo (4 x 34 x 50mm) plus its
  * protection board and leads: between the power section (left), the J3 cap
- * column (right), the button pins (below) and the microSD slot (above).
+ * column (right), the button pins (below) and the RTC/FRAM strip (above).
  */
 export const BATTERY_ZONE = { x: 5.4, y: 0.5, width: 53.8, height: 36 }
 
@@ -24,7 +24,6 @@ const placements: Record<string, Placement> = {
   U1: [-32.7, -20.15, 180], // antenna in the bottom-left corner, below the display
   J3: [38.82, DISPLAY.centerY, 90],
   USB1: [-25, 33.28, 180], // front shell legs 0.3mm from the top edge, mouth ~1.5mm past it
-  J4: [8, 27.2, 180],
   J2: [-24, -1.5, 90],
   SW4: [-40.85, 20, 270], // side-push PWR button: body 0.3mm inside the left edge, actuator ~0.55mm past it
 
@@ -84,7 +83,7 @@ const placements: Record<string, Placement> = {
   LED2: [-10, 34.8],
   R22: [-10, 32.8, 180],
 
-  // RTC + I2C pull-ups, top strip left of the microSD slot
+  // RTC + I2C pull-ups, top strip
   U4: [-12, 23],
   Y1: [-12, 27],
   C50: [-7, 24.2],
@@ -94,13 +93,9 @@ const placements: Record<string, Placement> = {
   D40: [-7, 20.2],
   D41: [-7, 22.4],
 
-  // microSD pull-ups
-  C60: [-3, 20, 180],
-  R50: [-3, 21.2],
-  R51: [-3, 22.4],
-  R52: [-3, 23.6, 180],
-  R53: [-3, 24.8],
-  R54: [-3, 26],
+  // Optional FRAM (DNP), right of the RTC
+  U5: [1, 25],
+  C51: [-2.6, 27.7, 90], // next to VDD (pin 8)
 
   // E-paper supply switch and boost, top-right corner
   Q4: [20.5, 22],
