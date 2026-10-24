@@ -1,6 +1,6 @@
 import { Epaper } from "./lib/Epaper"
 import { FrontPanel } from "./lib/FrontPanel"
-import { BATTERY_ZONE, BOARD_HEIGHT, BOARD_WIDTH, DISPLAY } from "./lib/layout"
+import { BATTERY_ZONE, BOARD_HEIGHT, BOARD_WIDTH, DISPLAY, MOUNTING_HOLES } from "./lib/layout"
 import { Mcu } from "./lib/Mcu"
 import { Fram, Rtc } from "./lib/Peripherals"
 import { Power } from "./lib/Power"
@@ -27,6 +27,10 @@ export default () => (
       <net key={name} name={name} isPowerNet nominalTraceWidth="0.3mm" />
     ))}
     <net name="GND" isGroundNet />
+
+    {MOUNTING_HOLES.map(([x, y]) => (
+      <hole key={`${x},${y}`} diameter="2mm" pcbX={x} pcbY={y} />
+    ))}
 
     {/* E-paper panel outline on the front (bottom layer) */}
     <fabricationnoterect
@@ -59,13 +63,13 @@ export default () => (
     <copperpour connectsTo="net.GND" layer="top" clearance="0.2mm" />
     <copperpour connectsTo="net.GND" layer="bottom" clearance="0.2mm" />
 
-    {/* No copper under or beside the module's PCB antenna */}
+    {/* No copper under or beside the module's PCB antenna, down to the board edge */}
     <keepout
       shape="rect"
       pcbX={-32.5}
-      pcbY={-33.4}
+      pcbY={-31.4}
       width="20mm"
-      height="7.2mm"
+      height="11.2mm"
       layers={["top", "inner1", "inner2", "bottom"]}
       excludeRefs={[".U1"]}
     />

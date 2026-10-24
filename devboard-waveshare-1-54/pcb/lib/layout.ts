@@ -6,6 +6,16 @@ export const BOARD_HEIGHT = 74
 /** Front-side display outline: 84.70 x 54.41mm, landscape, flush with the top edge. */
 export const DISPLAY = { width: 84.7, height: 54.41, centerY: BOARD_HEIGHT / 2 - 54.41 / 2 }
 
+/** 2mm non-plated holes for flush plastic pins, one per corner, 2.5mm in from both edges. */
+const HOLE_X = BOARD_WIDTH / 2 - 2.5
+const HOLE_Y = BOARD_HEIGHT / 2 - 2.5
+export const MOUNTING_HOLES = [
+  [-HOLE_X, HOLE_Y],
+  [HOLE_X, HOLE_Y],
+  [-HOLE_X, -HOLE_Y],
+  [HOLE_X, -HOLE_Y],
+]
+
 /**
  * Back-side area kept free for a 403450 LiPo (4 x 34 x 50mm) plus its
  * protection board and leads: between the power section (left), the J3 cap
@@ -21,7 +31,7 @@ export const BATTERY_ZONE = { x: 5.4, y: 0.5, width: 53.8, height: 36 }
  */
 const placements: Record<string, Placement> = {
   // Edge parts
-  U1: [-32.7, -20.15, 180], // antenna in the bottom-left corner, below the display
+  U1: [-32.7, -16.15, 180], // antenna along the bottom edge, raised to clear the bottom-left mounting hole
   J3: [38.82, DISPLAY.centerY, 90],
   USB1: [-25, 33.28, 180], // front shell legs 0.3mm from the top edge, mouth ~1.5mm past it
   J2: [-24, -1.5, 90],
@@ -32,7 +42,7 @@ const placements: Record<string, Placement> = {
   SW2: [0, -25.3, 90],
   SW3: [16, -25.3, 90],
   J5: [0, -34.9],
-  R21: [-26, -6],
+  R21: [-26, -5.2],
 
   // MCU support, between SW1's pins (clear of its peg holes)
   C11: [-16, -27.5],
