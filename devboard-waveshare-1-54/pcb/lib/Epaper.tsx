@@ -53,7 +53,7 @@ export const Epaper = () => (
       ))}
 
       {/* Boost: PREVGH via D30, PREVGL via the C40 charge pump (D31, D32) */}
-      <capacitor name="C40" {...at("C40")} capacitance="4.7uF" maxVoltageRating="50V" footprint="0805" connections={{ pin1: "net.EPD_SW", pin2: "net.EPD_PUMP" }} />
+      <capacitor name="C40" {...at("C40")} capacitance="4.7uF" maxVoltageRating="50V" footprint="0805" supplierPartNumbers={{ jlcpcb: ["C98192"] }} connections={{ pin1: "net.EPD_SW", pin2: "net.EPD_PUMP" }} />
       <capacitor name="C41" {...at("C41")} capacitance="4.7uF" footprint="0603" connections={{ pin1: "net.EPD_3V3", pin2: "net.GND" }} />
       <SWPA4020S680MT name="L2" {...at("L2")} connections={{ pin1: "net.EPD_3V3", pin2: "net.EPD_SW" }} />
       <BSS138 name="Q5" {...at("Q5")} connections={{ D: "net.EPD_SW", G: "net.EPD_GDR", S: "net.EPD_RESE" }} />

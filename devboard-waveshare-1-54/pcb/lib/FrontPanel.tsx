@@ -6,15 +6,16 @@ const buttonConnections = (net: string) => ({ pin1: net, pin4: "net.GND" })
 
 /**
  * Front side: three 12x12mm buttons under the display (active low, internal
- * pull-ups except BTN1) and a row of 2.54mm solder pads for spare signals.
+ * pull-ups except BTN1; hand-soldered, not assembled) and a row of 2.54mm
+ * solder pads for spare signals.
  */
 export const FrontPanel = () => (
   <group name="FRONT" pcbX={0} pcbY={0}>
     <schematicsheet name="FRONT" displayName="Buttons & Pads" sheetIndex={5}>
       {/* BTN1 is GPIO0: held at reset/power-up it enters the USB download mode */}
-      <JT_S1212WFP name="SW1" {...at("SW1")} layer="bottom" connections={buttonConnections("net.BTN1")} />
-      <JT_S1212WFP name="SW2" {...at("SW2")} layer="bottom" connections={buttonConnections("net.BTN2")} />
-      <JT_S1212WFP name="SW3" {...at("SW3")} layer="bottom" connections={buttonConnections("net.BTN3")} />
+      <JT_S1212WFP name="SW1" {...at("SW1")} layer="bottom" doNotPlace connections={buttonConnections("net.BTN1")} />
+      <JT_S1212WFP name="SW2" {...at("SW2")} layer="bottom" doNotPlace connections={buttonConnections("net.BTN2")} />
+      <JT_S1212WFP name="SW3" {...at("SW3")} layer="bottom" doNotPlace connections={buttonConnections("net.BTN3")} />
       <resistor name="R21" {...at("R21")} resistance="10k" footprint="0402" connections={{ pin1: "net.BTN1", pin2: "net.V3_3" }} />
 
       <pinheader

@@ -50,9 +50,9 @@ export const Mcu = () => (
       <resistor name="R20" {...at("R20")} resistance="10k" footprint="0402" connections={{ pin1: "net.EN", pin2: "net.V3_3" }} />
       <capacitor name="C12" {...at("C12")} capacitance="1uF" footprint="0402" connections={{ pin1: "net.EN", pin2: "net.GND" }} />
 
-      {/* Active-low green status LED on GPIO3 */}
+      {/* Active-low status LED on GPIO3 */}
       <resistor name="R22" {...at("R22")} resistance="1k" footprint="0402" connections={{ pin1: "net.V3_3" }} />
-      <led name="LED2" {...at("LED2")} schRotation={180} color="green" footprint="0603" connections={{ anode: "R22.pin2", cathode: "net.LED_G" }} />
+      <led name="LED2" {...at("LED2")} schRotation={180} color="red" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2286"] }} connections={{ anode: "R22.pin2", cathode: "net.LED_G" }} />
     </schematicsheet>
   </group>
 )

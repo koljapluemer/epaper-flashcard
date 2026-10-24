@@ -38,7 +38,7 @@ export const Power = () => (
           Dn2: "net.USB_DN",
         }}
       />
-      <resistor name="R1" {...at("R1")} resistance="5.1k" footprint="0402" connections={{ pin1: "USB1.CC1", pin2: "net.GND" }} />
+      <resistor name="R1" {...at("R1")} resistance="5.1k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25905"] }} connections={{ pin1: "USB1.CC1", pin2: "net.GND" }} />
       <resistor name="R2" {...at("R2")} resistance="5.1k" footprint="0402" connections={{ pin1: "USB1.CC2", pin2: "net.GND" }} />
       <A_1N5819WS name="D1" {...at("D1")} connections={{ anode: "net.VBUS", cathode: "net.VSYS" }} />
 
@@ -51,7 +51,7 @@ export const Power = () => (
       <capacitor name="C2" {...at("C2")} capacitance="4.7uF" footprint="0603" connections={{ pin1: "net.VBAT", pin2: "net.GND" }} />
       <resistor name="R3" {...at("R3")} resistance="4.7k" footprint="0402" connections={{ pin1: "U2.PROG", pin2: "net.GND" }} />
       <resistor name="R4" {...at("R4")} resistance="1k" footprint="0402" connections={{ pin1: "net.VBUS" }} />
-      <led name="LED1" {...at("LED1")} schRotation={180} color="orange" footprint="0603" connections={{ anode: "R4.pin2", cathode: "U2.CHRG" }} />
+      <led name="LED1" {...at("LED1")} schRotation={180} color="red" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2286"] }} connections={{ anode: "R4.pin2", cathode: "U2.CHRG" }} />
 
       {/* Solder pads for the LiPo leads, at the edge of the battery zone */}
       <pinheader
@@ -79,14 +79,14 @@ export const Power = () => (
       <resistor name="R7" {...at("R7")} resistance="1k" footprint="0402" connections={{ pin1: "net.BAT_CTRL", pin2: "Q3.B" }} />
       <resistor name="R8" {...at("R8")} resistance="10k" footprint="0402" connections={{ pin1: "Q3.B", pin2: "net.GND" }} />
 
-      {/* 3.3V buck: Vout = 0.6V * (1 + 200k / 44.2k) = 3.31V */}
+      {/* 3.3V buck: Vout = 0.6V * (1 + 150k / 33k) = 3.33V */}
       <SY8089AAAC name="U3" {...at("U3")} connections={{ IN: "net.VSYS", GND: "net.GND", LX: "net.BUCK_SW" }} />
       <resistor name="R10" {...at("R10")} resistance="100k" footprint="0402" connections={{ pin1: "net.VSYS", pin2: "U3.EN" }} />
       <capacitor name="C3" {...at("C3")} capacitance="10uF" footprint="0805" connections={{ pin1: "net.VSYS", pin2: "net.GND" }} />
       <capacitor name="C4" {...at("C4")} capacitance="100nF" footprint="0402" connections={{ pin1: "net.VSYS", pin2: "net.GND" }} />
       <WPN3012H2R2MT name="L1" {...at("L1")} connections={{ pin1: "net.BUCK_SW", pin2: "net.V3_3" }} />
-      <resistor name="R11" {...at("R11")} resistance="200k" footprint="0402" connections={{ pin1: "net.V3_3", pin2: "U3.FB" }} />
-      <resistor name="R12" {...at("R12")} resistance="44.2k" footprint="0402" connections={{ pin1: "U3.FB", pin2: "net.GND" }} />
+      <resistor name="R11" {...at("R11")} resistance="150k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25755"] }} connections={{ pin1: "net.V3_3", pin2: "U3.FB" }} />
+      <resistor name="R12" {...at("R12")} resistance="33k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25779"] }} connections={{ pin1: "U3.FB", pin2: "net.GND" }} />
       <capacitor name="C5" {...at("C5")} capacitance="22pF" footprint="0402" connections={{ pin1: "net.V3_3", pin2: "U3.FB" }} />
       <capacitor name="C6" {...at("C6")} capacitance="22uF" footprint="0805" connections={{ pin1: "net.V3_3", pin2: "net.GND" }} />
 

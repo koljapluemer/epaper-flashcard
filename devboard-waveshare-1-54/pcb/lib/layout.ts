@@ -94,8 +94,8 @@ const placements: Record<string, Placement> = {
   R22: [-10, 32.8, 180],
 
   // RTC + I2C pull-ups, top strip
-  U4: [-12, 23],
-  Y1: [-12, 27],
+  U4: [-12, 22.7, 180], // OSCI/OSCO face Y1
+  Y1: [-12, 27.2, 180],
   C50: [-7, 24.2],
   R40: [-7, 25.4],
   R41: [-7, 26.6],

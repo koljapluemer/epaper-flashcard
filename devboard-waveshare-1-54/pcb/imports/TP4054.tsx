@@ -20,10 +20,10 @@ export const TP4054 = (props: ChipProps<typeof pinLabels>) => {
       pinAttributes={pinAttributes}
       supplierPartNumbers={{
   "jlcpcb": [
-    "C668215"
+    "C32574"
   ]
 }}
-      manufacturerPartNumber="TP4054"
+      manufacturerPartNumber="TP4054-42-SOT25R"
       footprint="sot25_w2.4mm_pl1mm_pin1location(rightside,bottom)"
       cadModel={{
         objUrl: "https://modelcdn.tscircuit.com/easyeda_models/assets/C668215.obj?uuid=c7fdf6dae3ca4abaabd1bafd2d31350d",

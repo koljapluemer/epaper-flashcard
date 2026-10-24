@@ -1,20 +1,21 @@
 import { A_1N5819WS } from "../imports/A_1N5819WS"
 import { FM24V02A_GTR } from "../imports/FM24V02A_GTR"
-import { PCF85063ATL_1_118 } from "../imports/PCF85063ATL_1_118"
+import { PCF85063ATT_AJ } from "../imports/PCF85063ATT_AJ"
 import { Q13FC13500004 } from "../imports/Q13FC13500004"
 import { at } from "./layout"
 
-/** PCF85063 RTC, kept alive from VBAT when 3V3 is off. */
+/**
+ * PCF85063A RTC, kept alive from VBAT when 3V3 is off. CLKOUT is unused but
+ * runs at 32kHz after power-up: firmware should set COF = 0b111 to stop it.
+ */
 export const Rtc = () => (
   <group name="RTC" pcbX={0} pcbY={0}>
     <schematicsheet name="RTC" displayName="RTC" sheetIndex={3}>
-      <PCF85063ATL_1_118
+      <PCF85063ATT_AJ
         name="U4" {...at("U4")} schWidth={1.5}
         connections={{
           VDD: "net.RTC_VDD",
           VSS: "net.GND",
-          EP: "net.GND",
-          CLKOE: "net.GND",
           SDA: "net.I2C_SDA",
           SCL: "net.I2C_SCL",
           N_INT: "net.RTC_INT",
