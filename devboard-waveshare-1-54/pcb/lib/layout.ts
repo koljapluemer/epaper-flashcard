@@ -23,10 +23,10 @@ const placements: Record<string, Placement> = {
   // Edge parts
   U1: [-32.7, -20.15, 180], // antenna in the bottom-left corner, below the display
   J3: [38.82, DISPLAY.centerY, 90],
-  USB1: [-25, 31.46, 180],
+  USB1: [-25, 33.28, 180], // front shell legs 0.3mm from the top edge, mouth ~1.5mm past it
   J4: [8, 27.2, 180],
   J2: [-24, -1.5, 90],
-  SW4: [-38.45, 20, 270],
+  SW4: [-40.85, 20, 270], // side-push PWR button: body 0.3mm inside the left edge, actuator ~0.55mm past it
 
   // Front: buttons and solder pads centered under the display (16mm pitch; rotated so the 12.5mm pin spacing runs vertically)
   SW1: [-16, -25.3, 90],
@@ -47,6 +47,16 @@ const placements: Record<string, Placement> = {
   D1: [-18.5, 26.9],
   R6: [-29.8, 26.9],
   Q1: [-30, 21],
+
+  // Soft power latch, between the PWR button and the buck
+  Q2: [-34.5, 21],
+  R5: [-34.5, 24],
+  D3: [-35, 17.5],
+  D2: [-35, 15.3],
+  R9: [-35, 13.3],
+  Q3: [-35, 10.5],
+  R7: [-35, 8],
+  R8: [-35, 6.8],
 
   // 3.3V buck
   U3: [-24, 21],

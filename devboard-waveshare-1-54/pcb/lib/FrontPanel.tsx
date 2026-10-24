@@ -20,13 +20,13 @@ export const FrontPanel = () => (
       <pinheader
         name="J5" {...at("J5")}
         schWidth={0.58}
-        pinCount={16}
+        pinCount={14}
         pitch="2.54mm"
         doNotPlace
         showSilkscreenPinLabels
         pinLabels={[
-          "GND", "V3_3", "VSYS", "IO1", "IO2", "IO15", "IO16", "IO17",
-          "IO18", "IO21", "IO38", "IO42", "TX", "RX", "SDA", "SCL",
+          "GND", "V3_3", "VSYS", "IO1", "IO2", "IO15", "IO16",
+          "IO21", "IO38", "IO42", "TX", "RX", "SDA", "SCL",
         ]}
         connections={{
           GND: "net.GND",
@@ -36,8 +36,6 @@ export const FrontPanel = () => (
           IO2: "net.GP2",
           IO15: "net.GP15",
           IO16: "net.GP16",
-          IO17: "net.GP17",
-          IO18: "net.GP18",
           IO21: "net.GP21",
           IO38: "net.GP38",
           IO42: "net.GP42",
