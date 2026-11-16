@@ -1,7 +1,7 @@
 import { ESP32_S3_WROOM_1_N16R8 } from "../imports/ESP32_S3_WROOM_1_N16R8"
 import { at } from "./layout"
 
-/** ESP32-S3 module with reset RC and status LED. */
+/** ESP32-S3 module with reset RC. The radio is never enabled. */
 export const Mcu = () => (
   <group name="MCU" pcbX={0} pcbY={0}>
     <schematicsheet name="MCU" displayName="MCU" sheetIndex={1}>
@@ -16,9 +16,7 @@ export const Mcu = () => (
           IO0: "net.BTN1",
           IO1: "net.GP1",
           IO2: "net.GP2",
-          IO3: "net.LED_G",
           IO4: "net.BAT_ADC",
-          IO5: "net.RTC_INT",
           IO6: "net.EPD_PWR_EN",
           IO7: "net.BTN2",
           IO8: "net.EPD_BUSY",
@@ -30,8 +28,6 @@ export const Mcu = () => (
           IO14: "net.BTN3",
           IO15: "net.GP15",
           IO16: "net.GP16",
-          IO17: "net.BAT_CTRL",
-          IO18: "net.BAT_KEY",
           IO19: "net.USB_DN",
           IO20: "net.USB_DP",
           IO21: "net.GP21",
@@ -50,9 +46,6 @@ export const Mcu = () => (
       <resistor name="R20" {...at("R20")} resistance="10k" footprint="0402" connections={{ pin1: "net.EN", pin2: "net.V3_3" }} />
       <capacitor name="C12" {...at("C12")} capacitance="1uF" footprint="0402" connections={{ pin1: "net.EN", pin2: "net.GND" }} />
 
-      {/* Active-low status LED on GPIO3 */}
-      <resistor name="R22" {...at("R22")} resistance="1k" footprint="0402" connections={{ pin1: "net.V3_3" }} />
-      <led name="LED2" {...at("LED2")} schRotation={180} color="red" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C2286"] }} connections={{ anode: "R22.pin2", cathode: "net.LED_G" }} />
     </schematicsheet>
   </group>
 )

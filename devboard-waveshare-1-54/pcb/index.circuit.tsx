@@ -2,27 +2,24 @@ import { Epaper } from "./lib/Epaper"
 import { FrontPanel } from "./lib/FrontPanel"
 import { BATTERY_ZONE, BOARD_HEIGHT, BOARD_WIDTH, DISPLAY, MOUNTING_HOLES } from "./lib/layout"
 import { Mcu } from "./lib/Mcu"
-import { Fram, Rtc } from "./lib/Peripherals"
 import { Power } from "./lib/Power"
 
-const POWER_NETS = ["VBUS", "VSYS", "VBAT", "BAT_SW", "V3_3", "BUCK_SW"]
+const POWER_NETS = ["VBUS", "VSYS", "VBAT", "V3_3"]
 
 /**
- * ESP32-S3 dev board with a 3.52" landscape e-paper on the front, three
- * buttons and spare-signal solder pads below it. Derived from the Waveshare
- * ESP32-S3-ePaper-1.54 (audio and SHTC3 removed, WROOM module instead of the
- * PICO SiP).
+ * Budget 2-layer flashcard board: ESP32-S3 module (radio unused, cards are
+ * loaded over USB), 3.52" landscape e-paper on the front, three buttons and
+ * spare-signal solder pads below it, LiPo with USB charging and an LDO.
+ * Derived from the Waveshare ESP32-S3-ePaper-1.54.
  */
 export default () => (
-  <board width={BOARD_WIDTH} height={BOARD_HEIGHT} layers={4} routeRemaining>
+  <board width={BOARD_WIDTH} height={BOARD_HEIGHT} layers={2} routeRemaining pcbStyle={{ viaHoleDiameter: "0.3mm", viaPadDiameter: "0.6mm" }}>
     <Mcu />
     <Power />
     <Epaper />
-    <Rtc />
-    <Fram />
     <FrontPanel />
 
-    {/* Wider copper for the supply rails (~0.5A peak with Wi-Fi; 0.3mm is good for ~1A) */}
+    {/* Wider copper for the supply rails (~0.2A peak without radio; 0.3mm is good for ~1A) */}
     {POWER_NETS.map((name) => (
       <net key={name} name={name} isPowerNet nominalTraceWidth="0.3mm" />
     ))}
@@ -58,19 +55,18 @@ export default () => (
       fontSize="1.5mm"
     />
 
-    {/* inner1 is a solid ground plane; outer layers are flooded with GND */}
-    <copperpour connectsTo="net.GND" layer="inner1" clearance="0.2mm" />
+    {/* Both layers are flooded with GND */}
     <copperpour connectsTo="net.GND" layer="top" clearance="0.2mm" />
     <copperpour connectsTo="net.GND" layer="bottom" clearance="0.2mm" />
 
-    {/* No copper under or beside the module's PCB antenna, down to the board edge */}
+    {/* Radio is unused; the antenna keep-out only keeps the option open */}
     <keepout
       shape="rect"
       pcbX={-32.5}
       pcbY={-31.4}
       width="20mm"
       height="11.2mm"
-      layers={["top", "inner1", "inner2", "bottom"]}
+      layers={["top", "bottom"]}
       excludeRefs={[".U1"]}
     />
   </board>

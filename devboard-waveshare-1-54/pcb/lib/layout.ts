@@ -19,7 +19,7 @@ export const MOUNTING_HOLES = [
 /**
  * Back-side area kept free for a 403450 LiPo (4 x 34 x 50mm) plus its
  * protection board and leads: between the power section (left), the J3 cap
- * column (right), the button pins (below) and the RTC/FRAM strip (above).
+ * column (right), the button pins (below) and the USB/charger strip (above).
  */
 export const BATTERY_ZONE = { x: 5.4, y: 0.5, width: 53.8, height: 36 }
 
@@ -35,7 +35,6 @@ const placements: Record<string, Placement> = {
   J3: [38.82, DISPLAY.centerY, 90],
   USB1: [-25, 33.28, 180], // front shell legs 0.3mm from the top edge, mouth ~1.5mm past it
   J2: [-24, -1.5, 90],
-  SW4: [-40.85, 20, 270], // side-push PWR button: body 0.3mm inside the left edge, actuator ~0.55mm past it
 
   // Front: buttons and solder pads centered under the display (16mm pitch; rotated so the 12.5mm pin spacing runs vertically)
   SW1: [-16, -25.3, 90],
@@ -55,28 +54,13 @@ const placements: Record<string, Placement> = {
   R1: [-23, 26.9],
   D1: [-18.5, 26.9],
   R6: [-29.8, 26.9],
-  Q1: [-30, 21],
+  Q1: [-30, 21, 180],
 
-  // Soft power latch, between the PWR button and the buck
-  Q2: [-34.5, 21],
-  R5: [-34.5, 24],
-  D3: [-35, 17.5],
-  D2: [-35, 15.3],
-  R9: [-35, 13.3],
-  Q3: [-35, 10.5],
-  R7: [-35, 8],
-  R8: [-35, 6.8],
-
-  // 3.3V buck
+  // 3.3V LDO
   U3: [-24, 21],
-  L1: [-18.5, 21],
-  R10: [-24, 24.3],
   C4: [-27.6, 17.6],
   C3: [-24, 17.6],
   C6: [-19.6, 24.4],
-  C5: [-29.6, 15.4],
-  R11: [-27.6, 15.4],
-  R12: [-25.6, 15.4],
 
   // Charger + battery ADC
   U2: [-26.5, 8],
@@ -87,25 +71,9 @@ const placements: Record<string, Placement> = {
   R14: [-22.5, 3.8],
   C7: [-22.5, 2.6],
 
-  // LEDs along the top edge
+  // Charge LED along the top edge
   LED1: [-15, 34.8],
   R4: [-15, 32.8],
-  LED2: [-10, 34.8],
-  R22: [-10, 32.8, 180],
-
-  // RTC + I2C pull-ups, top strip
-  U4: [-12, 22.7, 180], // OSCI/OSCO face Y1
-  Y1: [-12, 27.2, 180],
-  C50: [-7, 24.2],
-  R40: [-7, 25.4],
-  R41: [-7, 26.6],
-  R42: [-7, 27.8],
-  D40: [-7, 20.2],
-  D41: [-7, 22.4],
-
-  // Optional FRAM (DNP), right of the RTC
-  U5: [1, 25],
-  C51: [-2.6, 27.7, 90], // next to VDD (pin 8)
 
   // E-paper supply switch and boost, top-right corner
   Q4: [20.5, 22],
@@ -123,7 +91,7 @@ const placements: Record<string, Placement> = {
   // Panel capacitors in a column next to J3
   C31: [33.9, 15.2],
   C32: [33.9, 13.6],
-  C30: [34.4, 12.1],
+  C30: [33.9, 12.1],
   C33: [33.9, 10.6],
   C34: [33.9, 9],
   C35: [33.9, 7.4],

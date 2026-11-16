@@ -1,23 +1,19 @@
 import { A_1N5819WS } from "../imports/A_1N5819WS"
 import { AO3401A } from "../imports/AO3401A"
-import { S8050_J3Y_RANGE_200_350_ } from "../imports/S8050_J3Y_RANGE_200_350_"
-import { SKRTLAE010 } from "../imports/SKRTLAE010"
-import { SY8089AAAC } from "../imports/SY8089AAAC"
+import { RT9080_33GJ5 } from "../imports/RT9080_33GJ5"
 import { TP4054 } from "../imports/TP4054"
 import { TYPE_C_16PIN_2MD_073_ } from "../imports/TYPE_C_16PIN_2MD_073_"
-import { WPN3012H2R2MT } from "../imports/WPN3012H2R2MT"
 import { at } from "./layout"
 
 /**
- * USB-C input, Li-ion charging, soft power latch and 3.3V buck.
+ * USB-C input, Li-ion charging and a 3.3V LDO. There is no power switch: the
+ * rail is always on and firmware puts the ESP32-S3 into deep sleep (~8uA),
+ * waking on any front button (ext1 on GPIO0/7/14).
  *
  * Power path (from the Waveshare reference design):
  * - USB present: VBUS -> D1 -> VSYS, and Q1 is held off so the battery is
- *   isolated from VSYS. The board stays on while USB is plugged in.
- * - Battery only: pressing SW4 pulls PWR_GATE low through D3 and Q2 conducts.
- *   Firmware latches it on by driving BAT_CTRL high (Q3 holds PWR_GATE low)
- *   once BAT_KEY has been held for ~0.3s, and turns off by releasing
- *   BAT_CTRL after another ~0.3s hold. D2 lets firmware read the button.
+ *   isolated from VSYS.
+ * - Battery only: Q1 conducts and VBAT feeds VSYS.
  */
 export const Power = () => (
   <group name="POWER" pcbX={0} pcbY={0}>
@@ -64,35 +60,19 @@ export const Power = () => (
         connections={{ BAT_P: "net.VBAT", BAT_N: "net.GND" }}
       />
 
-      {/* Battery / USB power path: Q2 is the battery switch, Q1 blocks the battery while USB is present */}
-      <AO3401A name="Q1" {...at("Q1")} connections={{ S: "net.VSYS", D: "net.BAT_SW", G: "net.VBUS" }} />
+      {/* Q1 blocks the battery while USB is present */}
+      <AO3401A name="Q1" {...at("Q1")} connections={{ S: "net.VSYS", D: "net.VBAT", G: "net.VBUS" }} />
       <resistor name="R6" {...at("R6")} resistance="100k" footprint="0402" connections={{ pin1: "net.VBUS", pin2: "net.GND" }} />
-      <AO3401A name="Q2" {...at("Q2")} connections={{ S: "net.VBAT", D: "net.BAT_SW", G: "net.PWR_GATE" }} />
-      <resistor name="R5" {...at("R5")} resistance="100k" footprint="0402" connections={{ pin1: "net.VBAT", pin2: "net.PWR_GATE" }} />
 
-      {/* Soft power latch: side-push PWR button on the board edge (pins 1 and 3 are the same contact) */}
-      <SKRTLAE010 name="SW4" {...at("SW4")} allowOffBoard connections={{ pin1: "net.PWR_KEY", pin3: "net.PWR_KEY", pin2: "net.GND" }} />
-      <A_1N5819WS name="D3" {...at("D3")} connections={{ anode: "net.PWR_GATE", cathode: "net.PWR_KEY" }} />
-      <A_1N5819WS name="D2" {...at("D2")} connections={{ anode: "net.BAT_KEY", cathode: "net.PWR_KEY" }} />
-      <resistor name="R9" {...at("R9")} resistance="10k" footprint="0402" connections={{ pin1: "net.BAT_KEY", pin2: "net.V3_3" }} />
-      <S8050_J3Y_RANGE_200_350_ name="Q3" {...at("Q3")} connections={{ C: "net.PWR_GATE", E: "net.GND" }} />
-      <resistor name="R7" {...at("R7")} resistance="1k" footprint="0402" connections={{ pin1: "net.BAT_CTRL", pin2: "Q3.B" }} />
-      <resistor name="R8" {...at("R8")} resistance="10k" footprint="0402" connections={{ pin1: "Q3.B", pin2: "net.GND" }} />
-
-      {/* 3.3V buck: Vout = 0.6V * (1 + 150k / 33k) = 3.33V */}
-      <SY8089AAAC name="U3" {...at("U3")} connections={{ IN: "net.VSYS", GND: "net.GND", LX: "net.BUCK_SW" }} />
-      <resistor name="R10" {...at("R10")} resistance="100k" footprint="0402" connections={{ pin1: "net.VSYS", pin2: "U3.EN" }} />
+      {/* 3.3V LDO, 2uA quiescent; drops out below ~3.4V battery, the ESP32-S3 runs down to 3.0V */}
+      <RT9080_33GJ5 name="U3" {...at("U3")} connections={{ VIN: "net.VSYS", EN: "net.VSYS", GND: "net.GND", VOUT: "net.V3_3" }} />
       <capacitor name="C3" {...at("C3")} capacitance="10uF" footprint="0805" connections={{ pin1: "net.VSYS", pin2: "net.GND" }} />
       <capacitor name="C4" {...at("C4")} capacitance="100nF" footprint="0402" connections={{ pin1: "net.VSYS", pin2: "net.GND" }} />
-      <WPN3012H2R2MT name="L1" {...at("L1")} connections={{ pin1: "net.BUCK_SW", pin2: "net.V3_3" }} />
-      <resistor name="R11" {...at("R11")} resistance="150k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25755"] }} connections={{ pin1: "net.V3_3", pin2: "U3.FB" }} />
-      <resistor name="R12" {...at("R12")} resistance="33k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25779"] }} connections={{ pin1: "U3.FB", pin2: "net.GND" }} />
-      <capacitor name="C5" {...at("C5")} capacitance="22pF" footprint="0402" connections={{ pin1: "net.V3_3", pin2: "U3.FB" }} />
       <capacitor name="C6" {...at("C6")} capacitance="22uF" footprint="0805" connections={{ pin1: "net.V3_3", pin2: "net.GND" }} />
 
-      {/* Battery voltage sense: BAT_ADC = VBAT / 2 */}
-      <resistor name="R13" {...at("R13")} resistance="200k" footprint="0402" connections={{ pin1: "net.VBAT", pin2: "net.BAT_ADC" }} />
-      <resistor name="R14" {...at("R14")} resistance="200k" footprint="0402" connections={{ pin1: "net.BAT_ADC", pin2: "net.GND" }} />
+      {/* Battery voltage sense: BAT_ADC = VBAT / 2, ~2uA permanent drain */}
+      <resistor name="R13" {...at("R13")} resistance="1M" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C26083"] }} connections={{ pin1: "net.VBAT", pin2: "net.BAT_ADC" }} />
+      <resistor name="R14" {...at("R14")} resistance="1M" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C26083"] }} connections={{ pin1: "net.BAT_ADC", pin2: "net.GND" }} />
       <capacitor name="C7" {...at("C7")} capacitance="100nF" footprint="0402" connections={{ pin1: "net.BAT_ADC", pin2: "net.GND" }} />
     </schematicsheet>
   </group>
