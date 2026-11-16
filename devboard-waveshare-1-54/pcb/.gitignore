@@ -27,3 +27,6 @@ yarn-error.log*
 
 # tscircuit cache
 .tscircuit/
+
+# Fabrication output (generated)
+fab/
