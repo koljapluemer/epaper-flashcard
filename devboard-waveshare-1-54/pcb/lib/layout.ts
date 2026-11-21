@@ -1,4 +1,4 @@
-type Placement = [x: number, y: number, rotation?: number]
+export type Placement = [x: number, y: number, rotation?: number]
 
 export const BOARD_WIDTH = 85
 export const BOARD_HEIGHT = 74
@@ -17,9 +17,10 @@ export const MOUNTING_HOLES = [
 ]
 
 /**
- * Back-side area kept free for a 403450 LiPo (4 x 34 x 50mm) plus its
- * protection board and leads: between the power section (left), the J3 cap
- * column (right), the button pins (below) and the USB/charger strip (above).
+ * Back-side area kept free for the battery: a 403450 LiPo (4 x 34 x 50mm,
+ * plus protection board and leads) or a 1xAAA holder with leads (~52 x 14 x
+ * 13mm). Between the power section (left), the J3 cap column (right), the
+ * button pins (below) and the USB/power strip (above).
  */
 export const BATTERY_ZONE = { x: 5.4, y: 0.5, width: 53.8, height: 36 }
 
@@ -29,7 +30,7 @@ export const BATTERY_ZONE = { x: 5.4, y: 0.5, width: 53.8, height: 36 }
  * the e-paper panel (not modeled) and the three buttons. The panel's FPC
  * wraps around the right edge (as seen from the back) into J3.
  */
-const placements: Record<string, Placement> = {
+export const sharedPlacements: Record<string, Placement> = {
   // Edge parts
   U1: [-32.7, -16.15, 180], // antenna along the bottom edge, raised to clear the bottom-left mounting hole
   J3: [38.82, DISPLAY.centerY, 90],
@@ -49,31 +50,9 @@ const placements: Record<string, Placement> = {
   R20: [-16, -22.9, 180],
   C12: [-16, -21.5],
 
-  // USB CC resistors, VBUS diode, power path
+  // USB CC resistors (both variants)
   R2: [-26.8, 26.9, 180],
   R1: [-23, 26.9],
-  D1: [-18.5, 26.9],
-  R6: [-29.8, 26.9],
-  Q1: [-30, 21, 180],
-
-  // 3.3V LDO
-  U3: [-24, 21],
-  C4: [-27.6, 17.6],
-  C3: [-24, 17.6],
-  C6: [-19.6, 24.4],
-
-  // Charger + battery ADC
-  U2: [-26.5, 8],
-  C1: [-26.5, 11.4],
-  C2: [-26.5, 4.6],
-  R3: [-22.5, 8],
-  R13: [-22.5, 5],
-  R14: [-22.5, 3.8],
-  C7: [-22.5, 2.6],
-
-  // Charge LED along the top edge
-  LED1: [-15, 34.8],
-  R4: [-15, 32.8],
 
   // E-paper supply switch and boost, top-right corner
   Q4: [20.5, 22],
@@ -101,9 +80,13 @@ const placements: Record<string, Placement> = {
   C39: [33.9, 1],
 }
 
-export const at = (name: string) => {
-  const placement = placements[name]
+/** Placement lookup for a table of refs; throws on refs without a placement. */
+export const placer = (table: Record<string, Placement>) => (name: string) => {
+  const placement = table[name]
   if (!placement) throw new Error(`No PCB placement defined for ${name}`)
   const [pcbX, pcbY, pcbRotation = 0] = placement
   return { pcbX, pcbY, pcbRotation }
 }
+
+/** Placements of the parts both variants share; each power block extends this table. */
+export const at = placer(sharedPlacements)

@@ -7,9 +7,10 @@ const buttonConnections = (net: string) => ({ pin1: net, pin4: "net.GND" })
 /**
  * Front side: three 12x12mm buttons under the display (active low, internal
  * pull-ups except BTN1; hand-soldered, not assembled) and a row of 2.54mm
- * solder pads for spare signals.
+ * solder pads for spare signals. The third pad carries the variant's
+ * unregulated supply.
  */
-export const FrontPanel = () => (
+export const FrontPanel = ({ supplyNet }: { supplyNet: "VSYS" | "VBAT" }) => (
   <group name="FRONT" pcbX={0} pcbY={0}>
     <schematicsheet name="FRONT" displayName="Buttons & Pads" sheetIndex={5}>
       {/* BTN1 is GPIO0: held at reset/power-up it enters the USB download mode */}
@@ -26,13 +27,13 @@ export const FrontPanel = () => (
         doNotPlace
         showSilkscreenPinLabels
         pinLabels={[
-          "GND", "V3_3", "VSYS", "IO1", "IO2", "IO15", "IO16",
+          "GND", "V3_3", supplyNet, "IO1", "IO2", "IO15", "IO16",
           "IO21", "IO38", "IO42", "TX", "RX", "SDA", "SCL",
         ]}
         connections={{
           GND: "net.GND",
           V3_3: "net.V3_3",
-          VSYS: "net.VSYS",
+          [supplyNet]: `net.${supplyNet}`,
           IO1: "net.GP1",
           IO2: "net.GP2",
           IO15: "net.GP15",

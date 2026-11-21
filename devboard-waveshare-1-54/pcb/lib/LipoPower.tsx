@@ -2,8 +2,36 @@ import { A_1N5819WS } from "../imports/A_1N5819WS"
 import { AO3401A } from "../imports/AO3401A"
 import { RT9080_33GJ5 } from "../imports/RT9080_33GJ5"
 import { TP4054 } from "../imports/TP4054"
-import { TYPE_C_16PIN_2MD_073_ } from "../imports/TYPE_C_16PIN_2MD_073_"
-import { at } from "./layout"
+import { placer, sharedPlacements } from "./layout"
+import { UsbC } from "./UsbC"
+
+const at = placer({
+  ...sharedPlacements,
+
+  // VBUS diode, power path
+  D1: [-18.5, 26.9],
+  R6: [-29.8, 26.9],
+  Q1: [-30, 21, 180],
+
+  // 3.3V LDO
+  U3: [-24, 21],
+  C4: [-27.6, 17.6],
+  C3: [-24, 17.6],
+  C6: [-19.6, 24.4],
+
+  // Charger + battery ADC
+  U2: [-26.5, 8],
+  C1: [-26.5, 11.4],
+  C2: [-26.5, 4.6],
+  R3: [-22.5, 8],
+  R13: [-22.5, 5],
+  R14: [-22.5, 3.8],
+  C7: [-22.5, 2.6],
+
+  // Charge LED along the top edge
+  LED1: [-15, 34.8],
+  R4: [-15, 32.8],
+})
 
 /**
  * USB-C input, Li-ion charging and a 3.3V LDO. There is no power switch: the
@@ -15,27 +43,10 @@ import { at } from "./layout"
  *   isolated from VSYS.
  * - Battery only: Q1 conducts and VBAT feeds VSYS.
  */
-export const Power = () => (
+export const LipoPower = () => (
   <group name="POWER" pcbX={0} pcbY={0}>
     <schematicsheet name="POWER" displayName="Power" sheetIndex={0}>
-      {/* USB-C (device, 5V only) */}
-      <TYPE_C_16PIN_2MD_073_
-        name="USB1" {...at("USB1")} allowOffBoard
-        connections={{
-          VBUS1: "net.VBUS",
-          VBUS2: "net.VBUS",
-          GND1: "net.GND",
-          GND2: "net.GND",
-          EH1: "net.GND",
-          EH2: "net.GND",
-          Dp1: "net.USB_DP",
-          Dp2: "net.USB_DP",
-          Dn1: "net.USB_DN",
-          Dn2: "net.USB_DN",
-        }}
-      />
-      <resistor name="R1" {...at("R1")} resistance="5.1k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25905"] }} connections={{ pin1: "USB1.CC1", pin2: "net.GND" }} />
-      <resistor name="R2" {...at("R2")} resistance="5.1k" footprint="0402" connections={{ pin1: "USB1.CC2", pin2: "net.GND" }} />
+      <UsbC />
       <A_1N5819WS name="D1" {...at("D1")} connections={{ anode: "net.VBUS", cathode: "net.VSYS" }} />
 
       {/* Charger: I_charge = 1000V / R_PROG = ~210mA */}
