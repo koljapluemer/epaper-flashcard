@@ -56,10 +56,10 @@ export const placements: Record<string, Placement> = {
   C12: [-14, -17.5],
   R33: [-14, -15.5],
 
-  // Front buttons, stacked in the strip (16mm pitch; rotated so the 6.5mm pin spacing runs vertically)
-  SW1: [BUTTON_STRIP.centerX, 16, 90],
-  SW2: [BUTTON_STRIP.centerX, 0, 90],
-  SW3: [BUTTON_STRIP.centerX, -16, 90],
+  // Front key contacts, stacked in the strip (15mm pitch = Adafruit 1611 keypad grid)
+  SW1: [BUTTON_STRIP.centerX, 15],
+  SW2: [BUTTON_STRIP.centerX, 0],
+  SW3: [BUTTON_STRIP.centerX, -15],
 
   // USB-C on the top edge, CC resistors and power path below it
   USB1: [-22, BOARD_HEIGHT / 2 - 3.72, 180],
